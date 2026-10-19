@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Cultura Brasileira</title>
+    <link rel="stylesheet" href="vendor/reveal/dist/reset.css" />
+    <link rel="stylesheet" href="vendor/reveal/dist/reveal.css" />
+    <link rel="stylesheet" href="vendor/reveal/dist/theme/night.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="presentation-page">
+    <div class="remote-overlay is-collapsed" id="remote-overlay">
+      <button class="remote-toggle" id="remote-toggle" type="button" aria-expanded="false" aria-controls="remote-card" aria-label="Abrir painel do controle remoto">🎛️</button>
+      <div class="remote-card" id="remote-card">
+        <div class="remote-card-header">
+          <div>
+            <p class="eyebrow">Controle remoto</p>
+            <h2>Escaneie para controlar os slides</h2>
+          </div>
+          <button class="remote-close" id="remote-close" type="button" aria-label="Fechar painel do controle remoto">✕</button>
+        </div>
+        <div class="qr-shell"><div id="remote-qr" aria-label="QR code do controle remoto"></div></div>
+        <p class="session-line">Sessão: <code id="session-id">...</code></p>
+        <p class="link-line"><a id="remote-link" href="#" target="_blank" rel="noopener noreferrer">Abrir controle remoto</a></p>
+        <p class="status-line">Status: <span id="ably-status" role="status">Inicializando...</span></p>
+      </div>
+    </div>
+
+    <div class="toast" id="remote-toast" aria-live="polite"></div>
+
+    <div class="reveal">
+      <div class="slides">
+        <!-- Substitua este slide inicial pelo conteúdo da apresentação. -->
+        <section class="placeholder-slide">
+          <h1>Cultura Brasileira</h1>
+          <p>Apresentação em preparação</p>
+        </section>
+      </div>
+    </div>
+
+    <script src="vendor/reveal/dist/reveal.js"></script>
+    <script src="vendor/qrious.min.js"></script>
+    <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

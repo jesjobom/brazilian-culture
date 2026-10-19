@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Controle remoto — Cultura Brasileira</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="remote-page">
+    <main class="remote-layout">
+      <div class="remote-panel">
+        <p class="eyebrow">Controle remoto</p>
+        <h1>Cultura Brasileira</h1>
+        <p>Sessão: <code id="remote-session-id">...</code></p>
+        <div class="remote-actions">
+          <button id="btn-next" class="remote-button primary remote-button-next" disabled>Próximo slide</button>
+          <button id="btn-prev" class="remote-button secondary" disabled>Slide anterior</button>
+        </div>
+        <div class="goto-panel">
+          <label for="goto-slide">Número do slide</label>
+          <input id="goto-slide" type="number" min="1" placeholder="1" inputmode="numeric" />
+          <button id="btn-goto" class="remote-button tertiary" disabled>Ir para o slide</button>
+        </div>
+        <p id="remote-feedback" class="remote-feedback" role="status">Inicializando...</p>
+      </div>
+    </main>
+
+    <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
