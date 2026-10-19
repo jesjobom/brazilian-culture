@@ -58,6 +58,7 @@ function runPage(kind, search = '', peerAvailable = true) {
   };
   const location = { href: `https://example.test/${kind === 'remote' ? 'remote' : 'index'}.html${search}` };
   const intervals = [];
+  const timeouts = [];
   let now = 0;
   const window = {
     location,
@@ -65,8 +66,8 @@ function runPage(kind, search = '', peerAvailable = true) {
     crypto: { getRandomValues(bytes) { bytes.fill(10); } },
     Peer: peerAvailable ? MockPeer : undefined,
     QRious: class {},
-    clearTimeout() {},
-    setTimeout() { return 1; },
+    clearTimeout(id) { if (timeouts[id - 1]) timeouts[id - 1].cleared = true; },
+    setTimeout(callback, delay) { timeouts.push({ callback, delay, cleared: false }); return timeouts.length; },
     setInterval(callback) { intervals.push(callback); return intervals.length; },
     clearInterval() {}
   };
@@ -84,7 +85,16 @@ function runPage(kind, search = '', peerAvailable = true) {
     URL, Uint8Array, Date: { now: () => now }, console
   }, { filename: 'app.js' });
 
-  return { getElement, peers, deck, location, MockConnection, advance(milliseconds) { now += milliseconds; intervals.forEach((callback) => callback()); } };
+  return {
+    getElement, peers, deck, location, MockConnection,
+    advance(milliseconds) { now += milliseconds; intervals.forEach((callback) => callback()); },
+    runTimeout(delay) {
+      const timeout = timeouts.find((item) => item.delay === delay && !item.cleared);
+      assert.ok(timeout, `No active timeout for ${delay}ms`);
+      timeout.cleared = true;
+      timeout.callback();
+    }
+  };
 }
 
 test('apresentação cria sessão e QR para o mesmo controle sem configuração', () => {
@@ -92,6 +102,7 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261019-ice');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
   page.peers[0].emit('open');
@@ -137,6 +148,19 @@ test('controle detecta apresentação sem resposta e desabilita comandos', () =>
   page.advance(10000);
   assert.equal(page.getElement('btn-next').disabled, true);
   assert.match(page.getElement('remote-feedback').textContent, /não responde/);
+});
+
+test('controle diferencia sessão ausente de falha ICE', () => {
+  const missingSession = runPage('remote', `?session=${'de'.repeat(16)}`);
+  missingSession.peers[0].emit('open');
+  missingSession.peers[0].emit('error', { type: 'peer-unavailable' });
+  assert.match(missingSession.getElement('remote-feedback').textContent, /Sessão não localizada/);
+
+  const iceFailure = runPage('remote', `?session=${'ed'.repeat(16)}`);
+  iceFailure.peers[0].emit('open');
+  iceFailure.peers[0].connections[0].peerConnection = { iceConnectionState: 'failed' };
+  iceFailure.runTimeout(20000);
+  assert.match(iceFailure.getElement('remote-feedback').textContent, /Falha ICE/);
 });
 
 test('controle rejeita sessão inválida e informa biblioteca ausente', () => {

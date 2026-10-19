@@ -19,6 +19,7 @@ function getSessionId() {
 function remoteUrlFor(sessionId) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
+  url.searchParams.set('v', '20261019-ice');
   url.hash = '';
   return url.toString();
 }
@@ -65,6 +66,13 @@ function handleCommand(deck, data) {
     default:
       break;
   }
+}
+
+function connectionTimeoutMessage(connection) {
+  const iceState = connection.peerConnection?.iceConnectionState;
+  if (iceState === 'failed') return 'Falha ICE entre os dispositivos (rede, NAT ou firewall); tentando novamente';
+  if (iceState) return `Canal WebRTC não abriu (ICE: ${iceState}); tentando novamente`;
+  return 'Sem resposta da apresentação no pareamento; confira os códigos de sessão';
 }
 
 function initializePresentation() {
@@ -190,9 +198,10 @@ function initializeRemote() {
     let lastPong = 0;
     connectTimeout = window.setTimeout(() => {
       if (connection !== candidate || candidate.open) return;
+      const message = connectionTimeoutMessage(candidate);
       candidate.close();
-      connectionLost(candidate, 'Apresentação não encontrada; tentando novamente');
-    }, 10000);
+      connectionLost(candidate, message);
+    }, 20000);
 
     candidate.on('open', () => {
       if (connection !== candidate) return;
@@ -232,11 +241,14 @@ function initializeRemote() {
   });
   peer.on('error', (error) => {
     if (connection?.open) return;
+    const message = error.type === 'peer-unavailable'
+      ? 'Sessão não localizada no PeerJS; confira os códigos de sessão'
+      : `Falha no pareamento (${error.type || 'desconhecida'}); tentando novamente`;
     if (connection) {
       connection.close();
-      connectionLost(connection, error.type === 'peer-unavailable' ? 'Apresentação não encontrada; tentando novamente' : 'Falha no serviço de pareamento');
+      connectionLost(connection, message);
     } else {
-      setStatus(feedback, 'Falha no serviço de pareamento', 'warn');
+      setStatus(feedback, message, 'warn');
       scheduleReconnect();
     }
   });
