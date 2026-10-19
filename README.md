@@ -14,16 +14,15 @@ Para verificar as rotinas de sessão e controle remoto, execute `node --test tes
 
 ## Controle remoto
 
-A apresentação gera um ID de sessão aleatório na URL e mostra um QR code que abre `remote.html` na mesma sessão. O controle suporta próximo, anterior e ir para um slide. Sem autenticação Ably configurada, a apresentação continua funcionando pelo teclado, mas os botões remotos ficam indisponíveis.
+A apresentação gera um ID de sessão aleatório na URL e mostra um QR code que abre `remote.html` na mesma sessão. O controle suporta próximo, anterior e ir para um slide. Não é necessário criar conta, configurar tokens ou implantar um servidor próprio: o [PeerJS Cloud](https://peerjs.com/client/faq) faz a sinalização inicial, e os comandos trafegam diretamente entre os navegadores por WebRTC.
 
-Para ativar o controle, disponibilize um serviço que emita tokens Ably de curta duração e configure em `config.js` as URLs `presentationAuthUrl` e `remoteAuthUrl`. O serviço deve conceder à apresentação permissão de receber `command` e publicar/receber `presence`, e ao controle permissão de publicar `command` e `presence`, nos canais com prefixo `brazilian-culture:`. Configure o serviço para aceitar somente origens e sessões esperadas. **Não coloque API keys ou tokens de longa duração no repositório ou no JavaScript servido pelo Pages.**
+O link da sessão funciona como chave de acesso ao controle; compartilhe-o apenas com quem deve controlar a apresentação. Ambos os dispositivos precisam de acesso à internet para o pareamento. Em algumas combinações de redes/NATs, a conexão direta pode falhar sem um serviço TURN. O PeerJS Cloud é gratuito e não oferece garantia de disponibilidade para uma apresentação crítica; nesse caso, um serviço gerenciado como Firebase Realtime Database é uma alternativa mais previsível, também sem servidor próprio.
 
 ## Arquivos
 
 - `index.html`: slides e painel do apresentador.
 - `remote.html`: interface móvel do controle.
-- `app.js`: Reveal.js, sessões, QR code e integração opcional com Ably.
-- `config.js`: configuração pública dos endpoints de autenticação.
+- `app.js`: Reveal.js, sessões, QR code e controle WebRTC.
 - `styles.css`: estilos base.
-- `vendor/`: Reveal.js e QRious mantidos localmente.
+- `vendor/`: Reveal.js, QRious e PeerJS mantidos localmente, com licença do PeerJS.
 - `openspec/`: especificações e histórico de mudanças.

@@ -1,13 +1,12 @@
-const config = window.PRESENTATION_CONFIG || {};
-const channelPrefix = config.channelPrefix || 'brazilian-culture:';
-const sessionPattern = /^[a-f0-9]{24}$/;
+const sessionPattern = /^[a-f0-9]{32}$/;
+const presenterPeerId = (sessionId) => `bc-${sessionId}`;
 
 function getSessionId() {
   const url = new URL(window.location.href);
   let sessionId = url.searchParams.get('session');
 
   if (!sessionId || !sessionPattern.test(sessionId)) {
-    const bytes = new Uint8Array(12);
+    const bytes = new Uint8Array(16);
     window.crypto.getRandomValues(bytes);
     sessionId = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
     url.searchParams.set('session', sessionId);
@@ -49,22 +48,22 @@ function setOverlayCollapsed(collapsed) {
   toggle.setAttribute('aria-expanded', String(!collapsed));
 }
 
-function createClient(authUrl, status) {
-  if (!authUrl) {
-    setStatus(status, 'Controle remoto não configurado', 'warn');
-    return null;
-  }
-  if (!window.Ably) {
-    setStatus(status, 'Biblioteca Ably indisponível', 'error');
-    return null;
-  }
-
-  try {
-    return new Ably.Realtime({ authUrl });
-  } catch (error) {
-    setStatus(status, 'Falha ao iniciar conexão', 'error');
-    console.error(error);
-    return null;
+function handleCommand(deck, data) {
+  if (!data || typeof data !== 'object') return;
+  switch (data.action) {
+    case 'next':
+      deck.next();
+      break;
+    case 'prev':
+      deck.prev();
+      break;
+    case 'goto':
+      if (Number.isInteger(data.h) && data.h >= 0 && data.h < deck.getTotalSlides()) {
+        deck.slide(data.h, 0);
+      }
+      break;
+    default:
+      break;
   }
 }
 
@@ -79,11 +78,9 @@ function initializePresentation() {
 
   const sessionId = getSessionId();
   const remoteUrl = remoteUrlFor(sessionId);
-  const sessionElement = document.getElementById('session-id');
+  const status = document.getElementById('remote-status');
   const remoteLink = document.getElementById('remote-link');
-  const status = document.getElementById('ably-status');
-
-  sessionElement.textContent = sessionId;
+  document.getElementById('session-id').textContent = sessionId;
   remoteLink.href = remoteUrl;
   remoteLink.textContent = remoteUrl;
 
@@ -101,40 +98,46 @@ function initializePresentation() {
     qrContainer.textContent = 'QR code indisponível';
   }
 
-  const client = createClient(config.presentationAuthUrl, status);
-  if (!client) return;
+  if (!window.Peer) {
+    setStatus(status, 'Biblioteca do controle remoto indisponível', 'error');
+    return;
+  }
 
-  const channel = client.channels.get(`${channelPrefix}${sessionId}`);
-  client.connection.on('connected', () => setStatus(status, 'Conectado', 'ok'));
-  client.connection.on('connecting', () => setStatus(status, 'Conectando...', 'warn'));
-  client.connection.on('disconnected', () => setStatus(status, 'Desconectado', 'warn'));
-  client.connection.on('suspended', () => setStatus(status, 'Conexão suspensa', 'warn'));
-  client.connection.on('failed', () => setStatus(status, 'Falha de autenticação ou conexão', 'error'));
-
-  channel.subscribe('presence', (message) => {
-    if (message?.data?.action === 'remote-connected') {
+  const connections = new Set();
+  const peer = new Peer(presenterPeerId(sessionId));
+  peer.on('open', () => setStatus(status, 'Aguardando controle remoto', 'ok'));
+  peer.on('connection', (connection) => {
+    connection.on('open', () => {
+      connections.add(connection);
+      setStatus(status, 'Controle remoto conectado', 'ok');
       setOverlayCollapsed(true);
       showToast('Controle remoto conectado');
-    }
+    });
+    connection.on('data', (data) => {
+      if (data?.action === 'ping') {
+        if (connection.open) connection.send({ action: 'pong' });
+        return;
+      }
+      handleCommand(deck, data);
+    });
+    connection.on('close', () => {
+      connections.delete(connection);
+      setStatus(status, connections.size ? 'Controle remoto conectado' : 'Aguardando controle remoto', 'ok');
+    });
+    connection.on('error', () => {
+      connections.delete(connection);
+      setStatus(status, 'Falha na conexão do controle', 'warn');
+    });
   });
-
-  channel.subscribe('command', (message) => {
-    const data = message?.data || {};
-    switch (data.action) {
-      case 'next':
-        deck.next();
-        break;
-      case 'prev':
-        deck.prev();
-        break;
-      case 'goto':
-        if (Number.isInteger(data.h) && data.h >= 0 && data.h < deck.getTotalSlides()) {
-          deck.slide(data.h, 0);
-        }
-        break;
-      default:
-        console.warn('Comando desconhecido', data);
-    }
+  peer.on('disconnected', () => {
+    setStatus(status, 'Sinalização desconectada; tentando reconectar', 'warn');
+    window.setTimeout(() => {
+      if (!peer.destroyed && peer.disconnected) peer.reconnect();
+    }, 2000);
+  });
+  peer.on('error', (error) => {
+    setStatus(status, error.type === 'unavailable-id' ? 'Sessão já está em uso' : 'Falha no serviço de pareamento', 'error');
+    console.error(error);
   });
 }
 
@@ -145,45 +148,115 @@ function initializeRemote() {
     setStatus(feedback, 'Sessão ausente ou inválida. Abra o QR code da apresentação.', 'error');
     return;
   }
-
   document.getElementById('remote-session-id').textContent = sessionId;
-  const client = createClient(config.remoteAuthUrl, feedback);
-  if (!client) return;
 
-  const channel = client.channels.get(`${channelPrefix}${sessionId}`);
-  const buttons = ['btn-next', 'btn-prev', 'btn-goto'].map((id) => document.getElementById(id));
-  const setConnected = (connected) => buttons.forEach((button) => { button.disabled = !connected; });
-
-  client.connection.on('connected', () => {
-    setConnected(true);
-    setStatus(feedback, 'Conectado. Controle pronto.', 'ok');
-    channel.publish('presence', { action: 'remote-connected' });
-  });
-  client.connection.on('connecting', () => {
-    setConnected(false);
-    setStatus(feedback, 'Conectando...', 'warn');
-  });
-  client.connection.on('disconnected', () => {
-    setConnected(false);
-    setStatus(feedback, 'Desconectado', 'warn');
-  });
-  client.connection.on('suspended', () => {
-    setConnected(false);
-    setStatus(feedback, 'Conexão suspensa', 'warn');
-  });
-  client.connection.on('failed', () => {
-    setConnected(false);
-    setStatus(feedback, 'Falha de autenticação ou conexão', 'error');
-  });
-
-  function publish(action, extra = {}) {
-    channel.publish('command', { action, ...extra }, (error) => {
-      setStatus(feedback, error ? `Falha ao enviar: ${error.message || error}` : 'Comando enviado', error ? 'error' : 'ok');
-    });
+  if (!window.Peer) {
+    setStatus(feedback, 'Biblioteca do controle remoto indisponível', 'error');
+    return;
   }
 
-  document.getElementById('btn-next').addEventListener('click', () => publish('next'));
-  document.getElementById('btn-prev').addEventListener('click', () => publish('prev'));
+  const buttons = ['btn-next', 'btn-prev', 'btn-goto'].map((id) => document.getElementById(id));
+  const setConnected = (connected) => buttons.forEach((button) => { button.disabled = !connected; });
+  const peer = new Peer();
+  let connection = null;
+  let retryTimer = 0;
+  let connectTimeout = 0;
+  let heartbeatId = 0;
+
+  function scheduleReconnect() {
+    if (retryTimer || peer.destroyed) return;
+    retryTimer = window.setTimeout(() => {
+      retryTimer = 0;
+      if (peer.disconnected) peer.reconnect();
+      else connect();
+    }, 2000);
+  }
+
+  function connectionLost(candidate, message) {
+    if (connection !== candidate) return;
+    window.clearTimeout(connectTimeout);
+    window.clearInterval(heartbeatId);
+    heartbeatId = 0;
+    setConnected(false);
+    setStatus(feedback, message, 'warn');
+    scheduleReconnect();
+  }
+
+  function connect() {
+    if (peer.disconnected || peer.destroyed || connection?.open) return;
+    setStatus(feedback, 'Conectando à apresentação...', 'warn');
+    const candidate = peer.connect(presenterPeerId(sessionId));
+    connection = candidate;
+    let lastPong = 0;
+    connectTimeout = window.setTimeout(() => {
+      if (connection !== candidate || candidate.open) return;
+      candidate.close();
+      connectionLost(candidate, 'Apresentação não encontrada; tentando novamente');
+    }, 10000);
+
+    candidate.on('open', () => {
+      if (connection !== candidate) return;
+      window.clearTimeout(connectTimeout);
+      setConnected(true);
+      setStatus(feedback, 'Conectado. Controle pronto.', 'ok');
+      lastPong = Date.now();
+      heartbeatId = window.setInterval(() => {
+        if (connection !== candidate || !candidate.open) return;
+        if (Date.now() - lastPong > 9000) {
+          candidate.close();
+          connectionLost(candidate, 'Apresentação não responde; tentando novamente');
+          return;
+        }
+        try {
+          candidate.send({ action: 'ping' });
+        } catch (error) {
+          candidate.close();
+          connectionLost(candidate, 'Conexão perdida; tentando novamente');
+        }
+      }, 3000);
+    });
+    candidate.on('data', (data) => {
+      if (connection === candidate && data?.action === 'pong') lastPong = Date.now();
+    });
+    candidate.on('close', () => connectionLost(candidate, 'Conexão perdida; tentando novamente'));
+    candidate.on('error', () => connectionLost(candidate, 'Falha na conexão; tentando novamente'));
+  }
+
+  peer.on('open', connect);
+  peer.on('disconnected', () => {
+    if (!connection?.open) {
+      setConnected(false);
+      setStatus(feedback, 'Sinalização desconectada; tentando novamente', 'warn');
+    }
+    scheduleReconnect();
+  });
+  peer.on('error', (error) => {
+    if (connection?.open) return;
+    if (connection) {
+      connection.close();
+      connectionLost(connection, error.type === 'peer-unavailable' ? 'Apresentação não encontrada; tentando novamente' : 'Falha no serviço de pareamento');
+    } else {
+      setStatus(feedback, 'Falha no serviço de pareamento', 'warn');
+      scheduleReconnect();
+    }
+  });
+
+  function send(action, extra = {}) {
+    if (!connection?.open) {
+      setStatus(feedback, 'Controle desconectado', 'warn');
+      return;
+    }
+    try {
+      connection.send({ action, ...extra });
+      setStatus(feedback, 'Comando enviado', 'ok');
+    } catch (error) {
+      setStatus(feedback, 'Falha ao enviar comando', 'error');
+      console.error(error);
+    }
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => send('next'));
+  document.getElementById('btn-prev').addEventListener('click', () => send('prev'));
   document.getElementById('btn-goto').addEventListener('click', () => {
     const raw = document.getElementById('goto-slide').value;
     const slideNumber = Number(raw);
@@ -191,7 +264,7 @@ function initializeRemote() {
       setStatus(feedback, 'Informe um número de slide válido.', 'error');
       return;
     }
-    publish('goto', { h: slideNumber - 1 });
+    send('goto', { h: slideNumber - 1 });
   });
 }
 

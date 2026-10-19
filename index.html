@@ -23,7 +23,7 @@
         <div class="qr-shell"><div id="remote-qr" aria-label="QR code do controle remoto"></div></div>
         <p class="session-line">Sessão: <code id="session-id">...</code></p>
         <p class="link-line"><a id="remote-link" href="#" target="_blank" rel="noopener noreferrer">Abrir controle remoto</a></p>
-        <p class="status-line">Status: <span id="ably-status" role="status">Inicializando...</span></p>
+        <p class="status-line">Status: <span id="remote-status" role="status">Inicializando...</span></p>
       </div>
     </div>
 
@@ -41,8 +41,7 @@
 
     <script src="vendor/reveal/dist/reveal.js"></script>
     <script src="vendor/qrious.min.js"></script>
-    <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
-    <script src="config.js"></script>
+    <script src="vendor/peerjs.min.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
