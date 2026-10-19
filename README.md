@@ -8,7 +8,7 @@ Base de apresentação estática para GitHub Pages, derivada do projeto [Montrea
 2. Substitua a seção de exemplo dentro de `.slides` em `index.html` pelos slides novos. Cada `<section>` é um slide; elementos com a classe `fragment` aparecem em sequência.
 3. Coloque imagens novas em `assets/` e ajuste `styles.css` conforme o conteúdo. Não há build nem instalação de dependências para executar a apresentação.
 
-Depois da publicação do branch `main` via GitHub Pages, a URL prevista é `https://jesjobom.github.io/brazilian-culture/`. É necessário habilitar Pages nas configurações do repositório.
+Apresentação publicada: [abrir no GitHub Pages](https://jesjobom.github.io/brazilian-culture/).
 
 Para verificar as rotinas de sessão e controle remoto, execute `node --test tests/*.test.cjs` (Node.js 20 ou superior). A interface também pode ser verificada abrindo as duas páginas no navegador.
 
