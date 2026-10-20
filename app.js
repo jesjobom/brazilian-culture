@@ -19,7 +19,7 @@ function getSessionId() {
 function remoteUrlFor(sessionId) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
-  url.searchParams.set('v', '20261019-ice');
+  url.searchParams.set('v', '20261020-cover-fr');
   url.hash = '';
   return url.toString();
 }
@@ -77,6 +77,9 @@ function connectionTimeoutMessage(connection) {
 
 function initializePresentation() {
   const deck = new Reveal({
+    width: 1600,
+    height: 900,
+    margin: 0,
     hash: true,
     slideNumber: true,
     transition: 'slide',

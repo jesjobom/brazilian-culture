@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Cultura Brasileira</title>
+    <title>Ça, c’est bien brésilien ! · Culture brésilienne</title>
     <link rel="stylesheet" href="vendor/reveal/dist/reset.css" />
     <link rel="stylesheet" href="vendor/reveal/dist/reveal.css" />
     <link rel="stylesheet" href="vendor/reveal/dist/theme/night.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="presentation-page">
-    <div class="remote-overlay is-collapsed" id="remote-overlay">
+    <div class="remote-overlay is-collapsed" id="remote-overlay" lang="pt-BR">
       <button class="remote-toggle" id="remote-toggle" type="button" aria-expanded="false" aria-controls="remote-card" aria-label="Abrir painel do controle remoto">🎛️</button>
       <div class="remote-card" id="remote-card">
         <div class="remote-card-header">
@@ -27,18 +27,33 @@
       </div>
     </div>
 
-    <div class="toast" id="remote-toast" aria-live="polite"></div>
+    <div class="toast" id="remote-toast" aria-live="polite" lang="pt-BR"></div>
 
     <div class="reveal">
       <div class="slides">
-        <!-- Substitua estes slides de exemplo pelo conteúdo da apresentação. -->
-        <section class="placeholder-slide">
-          <h1>Cultura Brasileira</h1>
-          <p>Apresentação em preparação</p>
+        <section class="cover-slide" aria-labelledby="cover-title">
+          <div class="cover-copy">
+            <p class="cover-eyebrow">Au quotidien</p>
+            <h1 class="cover-title" id="cover-title">Ça, c’est bien<br /><span>brésilien !</span></h1>
+            <p class="cover-subtitle">Les petites choses que les Brésiliens reconnaissent entre eux.</p>
+            <ul class="cover-examples" aria-label="Quelques exemples du quotidien brésilien">
+              <li>Encore une douche</li>
+              <li>Riz + haricots</li>
+              <li>Chien « caramelo »</li>
+            </ul>
+            <p class="cover-credit">Image&nbsp;: Uninter · 2021</p>
+          </div>
+          <img
+            class="cover-art"
+            src="assets/brazil-fingerprint.png"
+            alt="Une empreinte digitale aux couleurs du drapeau brésilien."
+            width="1024"
+            height="1621"
+          />
         </section>
         <section class="placeholder-slide">
-          <h2>Slide de teste</h2>
-          <p>Você chegou ao segundo slide. A navegação está funcionando.</p>
+          <h2>Petites habitudes du quotidien</h2>
+          <p>Diapositive provisoire pour tester la navigation.</p>
         </section>
       </div>
     </div>
@@ -46,6 +61,6 @@
     <script src="vendor/reveal/dist/reveal.js"></script>
     <script src="vendor/qrious.min.js"></script>
     <script src="vendor/peerjs.min.js"></script>
-    <script src="app.js?v=20261019-ice"></script>
+    <script src="app.js?v=20261020-cover-fr"></script>
   </body>
 </html>

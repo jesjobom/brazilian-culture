@@ -5,7 +5,7 @@ Base de apresentação estática para GitHub Pages, derivada do projeto [Montrea
 ## Começar
 
 1. Abra `index.html` em um servidor HTTP local (por exemplo, `python3 -m http.server 8000`).
-2. Substitua a seção de exemplo dentro de `.slides` em `index.html` pelos slides novos. Cada `<section>` é um slide; elementos com a classe `fragment` aparecem em sequência.
+2. Adicione os próximos slides dentro de `.slides` em `index.html` após a capa. Cada `<section>` é um slide; elementos com a classe `fragment` aparecem em sequência.
 3. Coloque imagens novas em `assets/` e ajuste `styles.css` conforme o conteúdo. Não há build nem instalação de dependências para executar a apresentação.
 
 Apresentação publicada: [abrir no GitHub Pages](https://jesjobom.github.io/brazilian-culture/).
@@ -24,5 +24,6 @@ O link da sessão funciona como chave de acesso ao controle; compartilhe-o apena
 - `remote.html`: interface móvel do controle.
 - `app.js`: Reveal.js, sessões, QR code e controle WebRTC.
 - `styles.css`: estilos base.
+- `assets/brazil-fingerprint.png`: imagem da capa, obtida da [Uninter](https://www.uninter.com/noticias/wp-content/uploads/2021/05/noticias_brazil-652855_1920-1024x1621.png).
 - `vendor/`: Reveal.js, QRious e PeerJS mantidos localmente, com licença do PeerJS.
 - `openspec/`: especificações e histórico de mudanças.

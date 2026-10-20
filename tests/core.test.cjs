@@ -102,7 +102,7 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
-  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261019-ice');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261020-cover-fr');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
   page.peers[0].emit('open');
