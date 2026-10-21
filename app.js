@@ -13,6 +13,12 @@ const meteredTurn = [
   credential: 'HKpHBwSplvTspE6i'
 }));
 
+function createSessionId() {
+  const bytes = new Uint8Array(16);
+  window.crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 function transportMode() {
   const requested = new URL(window.location.href).searchParams.get('transport');
   return transportModes.includes(requested) ? requested : 'auto';
@@ -32,9 +38,7 @@ function getSessionId() {
   let sessionId = url.searchParams.get('session');
 
   if (!sessionId || !sessionPattern.test(sessionId)) {
-    const bytes = new Uint8Array(16);
-    window.crypto.getRandomValues(bytes);
-    sessionId = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    sessionId = createSessionId();
     url.searchParams.set('session', sessionId);
     window.history.replaceState({}, '', url);
   }
@@ -46,7 +50,7 @@ function remoteUrlFor(sessionId, mode) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
   url.searchParams.set('transport', mode);
-  url.searchParams.set('v', '20261021-metered-turn');
+  url.searchParams.set('v', '20261021-mode-switch');
   url.hash = '';
   return url.toString();
 }
@@ -116,6 +120,12 @@ function initializePresentation() {
 
   const sessionId = getSessionId();
   const mode = transportMode();
+  const pageUrl = new URL(window.location.href);
+  if (pageUrl.searchParams.get('panel') === 'open') {
+    setOverlayCollapsed(false);
+    pageUrl.searchParams.delete('panel');
+    window.history.replaceState({}, '', pageUrl);
+  }
   const remoteUrl = remoteUrlFor(sessionId, mode);
   const status = document.getElementById('remote-status');
   const remoteLink = document.getElementById('remote-link');
@@ -123,7 +133,9 @@ function initializePresentation() {
   modeSelect.value = mode;
   modeSelect.addEventListener('change', () => {
     const url = new URL(window.location.href);
+    url.searchParams.set('session', createSessionId());
     url.searchParams.set('transport', modeSelect.value);
+    url.searchParams.set('panel', 'open');
     window.location.assign(url.toString());
   });
   document.getElementById('session-id').textContent = sessionId;

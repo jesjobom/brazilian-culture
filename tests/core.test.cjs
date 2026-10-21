@@ -109,7 +109,7 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
-  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261021-metered-turn');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261021-mode-switch');
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('transport'), 'auto');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
@@ -128,8 +128,14 @@ test('seleção sincroniza o modo de conexão entre apresentação, QR e control
 
   presenter.getElement('connection-mode').value = 'relay';
   presenter.getElement('connection-mode').listeners.change();
-  assert.equal(new URL(presenter.location.href).searchParams.get('session'), session);
-  assert.equal(new URL(presenter.location.href).searchParams.get('transport'), 'relay');
+  const switchedUrl = new URL(presenter.location.href);
+  assert.notEqual(switchedUrl.searchParams.get('session'), session);
+  assert.equal(switchedUrl.searchParams.get('transport'), 'relay');
+  assert.equal(switchedUrl.searchParams.get('panel'), 'open');
+  const switchedPresenter = runPage('presentation', switchedUrl.search);
+  assert.equal(switchedPresenter.getElement('remote-overlay').classList.contains('is-collapsed'), false);
+  assert.equal(new URL(switchedPresenter.location.href).searchParams.has('panel'), false);
+  assert.equal(new URL(switchedPresenter.getElement('remote-link').href).searchParams.get('session'), switchedUrl.searchParams.get('session'));
 
   const relayPresenter = runPage('presentation', `?session=${session}&transport=relay`);
   const relayUrl = new URL(relayPresenter.getElement('remote-link').href);
