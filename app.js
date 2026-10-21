@@ -1,5 +1,31 @@
 const sessionPattern = /^[a-f0-9]{32}$/;
 const presenterPeerId = (sessionId) => `bc-${sessionId}`;
+const transportModes = ['auto', 'direct', 'relay'];
+const meteredStun = { urls: 'stun:stun.relay.metered.ca:80' };
+const meteredTurn = [
+  'turn:na.relay.metered.ca:80',
+  'turn:na.relay.metered.ca:80?transport=tcp',
+  'turn:na.relay.metered.ca:443',
+  'turns:na.relay.metered.ca:443?transport=tcp'
+].map((urls) => ({
+  urls,
+  username: 'a0e375338ea8d09189cd51e1',
+  credential: 'HKpHBwSplvTspE6i'
+}));
+
+function transportMode() {
+  const requested = new URL(window.location.href).searchParams.get('transport');
+  return transportModes.includes(requested) ? requested : 'auto';
+}
+
+function peerOptions(mode) {
+  return {
+    config: {
+      iceServers: mode === 'relay' ? [meteredTurn[3]] : [meteredStun, ...(mode === 'auto' ? meteredTurn : [])],
+      iceTransportPolicy: mode === 'relay' ? 'relay' : 'all'
+    }
+  };
+}
 
 function getSessionId() {
   const url = new URL(window.location.href);
@@ -16,10 +42,11 @@ function getSessionId() {
   return sessionId;
 }
 
-function remoteUrlFor(sessionId) {
+function remoteUrlFor(sessionId, mode) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
-  url.searchParams.set('v', '20261020-cover-fr');
+  url.searchParams.set('transport', mode);
+  url.searchParams.set('v', '20261021-metered-turn');
   url.hash = '';
   return url.toString();
 }
@@ -88,9 +115,17 @@ function initializePresentation() {
   deck.initialize();
 
   const sessionId = getSessionId();
-  const remoteUrl = remoteUrlFor(sessionId);
+  const mode = transportMode();
+  const remoteUrl = remoteUrlFor(sessionId, mode);
   const status = document.getElementById('remote-status');
   const remoteLink = document.getElementById('remote-link');
+  const modeSelect = document.getElementById('connection-mode');
+  modeSelect.value = mode;
+  modeSelect.addEventListener('change', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('transport', modeSelect.value);
+    window.location.assign(url.toString());
+  });
   document.getElementById('session-id').textContent = sessionId;
   remoteLink.href = remoteUrl;
   remoteLink.textContent = remoteUrl;
@@ -115,7 +150,7 @@ function initializePresentation() {
   }
 
   const connections = new Set();
-  const peer = new Peer(presenterPeerId(sessionId));
+  const peer = new Peer(presenterPeerId(sessionId), peerOptions(mode));
   peer.on('open', () => setStatus(status, 'Aguardando controle remoto', 'ok'));
   peer.on('connection', (connection) => {
     connection.on('open', () => {
@@ -154,12 +189,18 @@ function initializePresentation() {
 
 function initializeRemote() {
   const sessionId = new URL(window.location.href).searchParams.get('session');
+  const mode = transportMode();
   const feedback = document.getElementById('remote-feedback');
   if (!sessionId || !sessionPattern.test(sessionId)) {
     setStatus(feedback, 'Sessão ausente ou inválida. Abra o QR code da apresentação.', 'error');
     return;
   }
   document.getElementById('remote-session-id').textContent = sessionId;
+  document.getElementById('remote-mode').textContent = {
+    auto: 'Automático (direto → TURN)',
+    direct: 'Direto (sem TURN)',
+    relay: 'Somente TURN (TLS/443)'
+  }[mode];
 
   if (!window.Peer) {
     setStatus(feedback, 'Biblioteca do controle remoto indisponível', 'error');
@@ -168,7 +209,7 @@ function initializeRemote() {
 
   const buttons = ['btn-next', 'btn-prev', 'btn-goto'].map((id) => document.getElementById(id));
   const setConnected = (connected) => buttons.forEach((button) => { button.disabled = !connected; });
-  const peer = new Peer();
+  const peer = new Peer(peerOptions(mode));
   let connection = null;
   let retryTimer = 0;
   let connectTimeout = 0;

@@ -237,6 +237,23 @@ body {
   height: auto;
 }
 
+.connection-mode-label {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.connection-mode-select {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #1e293b;
+  color: white;
+  font: inherit;
+}
+
 .session-line,
 .link-line,
 .status-line,

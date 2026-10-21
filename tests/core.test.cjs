@@ -41,7 +41,11 @@ function runPage(kind, search = '', peerAvailable = true) {
 
   const peers = [];
   class MockPeer {
-    constructor(id) { this.id = id; this.events = {}; this.connections = []; this.disconnected = false; this.destroyed = false; peers.push(this); }
+    constructor(id, options) {
+      this.id = typeof id === 'string' ? id : undefined;
+      this.options = typeof id === 'string' ? options : id;
+      this.events = {}; this.connections = []; this.disconnected = false; this.destroyed = false; peers.push(this);
+    }
     on(name, callback) { this.events[name] = callback; }
     emit(name, value) { this.events[name]?.(value); }
     connect(id) { const connection = new MockConnection(id); this.connections.push(connection); return connection; }
@@ -56,7 +60,10 @@ function runPage(kind, search = '', peerAvailable = true) {
     slide(index) { this.lastSlide = index; },
     getTotalSlides() { return 3; }
   };
-  const location = { href: `https://example.test/${kind === 'remote' ? 'remote' : 'index'}.html${search}` };
+  const location = {
+    href: `https://example.test/${kind === 'remote' ? 'remote' : 'index'}.html${search}`,
+    assign(url) { this.href = String(url); }
+  };
   const intervals = [];
   const timeouts = [];
   let now = 0;
@@ -102,11 +109,37 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
-  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261020-cover-fr');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261021-metered-turn');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('transport'), 'auto');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
+  assert.equal(page.getElement('connection-mode').value, 'auto');
+  assert.equal(page.peers[0].options.config.iceServers.length, 5);
   page.peers[0].emit('open');
   assert.match(page.getElement('remote-status').textContent, /Aguardando/);
+});
+
+test('seleção sincroniza o modo de conexão entre apresentação, QR e controle', () => {
+  const session = 'ab'.repeat(16);
+  const presenter = runPage('presentation', `?session=${session}&transport=direct`);
+  assert.equal(presenter.getElement('connection-mode').value, 'direct');
+  assert.equal(presenter.peers[0].options.config.iceServers.length, 1);
+  assert.equal(new URL(presenter.getElement('remote-link').href).searchParams.get('transport'), 'direct');
+
+  presenter.getElement('connection-mode').value = 'relay';
+  presenter.getElement('connection-mode').listeners.change();
+  assert.equal(new URL(presenter.location.href).searchParams.get('session'), session);
+  assert.equal(new URL(presenter.location.href).searchParams.get('transport'), 'relay');
+
+  const relayPresenter = runPage('presentation', `?session=${session}&transport=relay`);
+  const relayUrl = new URL(relayPresenter.getElement('remote-link').href);
+  assert.equal(relayUrl.searchParams.get('transport'), 'relay');
+  assert.equal(relayPresenter.peers[0].options.config.iceTransportPolicy, 'relay');
+  assert.equal(relayPresenter.peers[0].options.config.iceServers.length, 1);
+  assert.equal(relayPresenter.peers[0].options.config.iceServers[0].urls, 'turns:na.relay.metered.ca:443?transport=tcp');
+  const remote = runPage('remote', `?session=${session}&transport=relay`);
+  assert.equal(remote.peers[0].options.config.iceTransportPolicy, 'relay');
+  assert.equal(remote.getElement('remote-mode').textContent, 'Somente TURN (TLS/443)');
 });
 
 test('apresentação aceita somente comandos de navegação válidos', () => {

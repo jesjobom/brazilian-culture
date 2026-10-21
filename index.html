@@ -20,6 +20,12 @@
           </div>
           <button class="remote-close" id="remote-close" type="button" aria-label="Fechar painel do controle remoto">✕</button>
         </div>
+        <label class="connection-mode-label" for="connection-mode">Conexão do controle</label>
+        <select id="connection-mode" class="connection-mode-select">
+          <option value="auto">Automático (direto → TURN)</option>
+          <option value="direct">Direto (sem TURN)</option>
+          <option value="relay">Somente TURN (TLS/443)</option>
+        </select>
         <div class="qr-shell"><div id="remote-qr" aria-label="QR code do controle remoto"></div></div>
         <p class="session-line">Sessão: <code id="session-id">...</code></p>
         <p class="link-line"><a id="remote-link" href="#" target="_blank" rel="noopener noreferrer">Abrir controle remoto</a></p>
@@ -55,6 +61,6 @@
     <script src="vendor/reveal/dist/reveal.js"></script>
     <script src="vendor/qrious.min.js"></script>
     <script src="vendor/peerjs.min.js"></script>
-    <script src="app.js?v=20261020-cover-fr"></script>
+    <script src="app.js?v=20261021-metered-turn"></script>
   </body>
 </html>
