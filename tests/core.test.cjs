@@ -58,7 +58,7 @@ function runPage(kind, search = '', peerAvailable = true) {
     next() { this.nextCount += 1; },
     prev() { this.prevCount += 1; },
     slide(index) { this.lastSlide = index; },
-    getTotalSlides() { return 3; }
+    getTotalSlides() { return 4; }
   };
   const location = {
     href: `https://example.test/${kind === 'remote' ? 'remote' : 'index'}.html${search}`,
@@ -153,12 +153,12 @@ test('apresentação aceita somente comandos de navegação válidos', () => {
   const connection = new page.MockConnection('remote');
   page.peers[0].emit('connection', connection);
   connection.emit('open');
-  for (const data of [{ action: 'next' }, { action: 'prev' }, { action: 'goto', h: 2 }, { action: 'goto', h: 99 }, { action: 'goto', h: '1' }]) {
+  for (const data of [{ action: 'next' }, { action: 'prev' }, { action: 'goto', h: 3 }, { action: 'goto', h: 99 }, { action: 'goto', h: '1' }]) {
     connection.emit('data', data);
   }
   assert.equal(page.deck.nextCount, 1);
   assert.equal(page.deck.prevCount, 1);
-  assert.equal(page.deck.lastSlide, 2);
+  assert.equal(page.deck.lastSlide, 3);
 });
 
 test('controle conecta diretamente, envia comandos e desabilita ao desconectar', () => {
