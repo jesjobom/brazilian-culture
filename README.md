@@ -30,8 +30,24 @@ No painel do apresentador, **Conexão do controle** oferece três modos. **Autom
 - `assets/diversidade-cultural-no-brasil.jpg`: imagem ilustrativa do slide sobre comunidades, obtida do [blog Quindim](https://quindim.com.br/blog/wp-content/uploads/2021/06/Diversidade-cultural-no-Brasil.jpg). Não representa pessoas ou comunidades específicas mencionadas no slide.
 - `assets/torcedores-anhangabau.jpg`: foto de torcedores em São Paulo usada no slide sobre diversidade genética; imagem fornecida do [g1](https://g1.globo.com/sp/sao-paulo/noticia/2022/12/02/no-anhangabau-torcedores-prometem-raspar-cabelo-pedir-ficante-em-namoro-e-parar-de-fumar-se-o-brasil-trouxer-o-hexa.ghtml), crédito Fábio Tito/g1. A foto é ilustrativa: as pessoas retratadas não são participantes do estudo genômico.
 - `assets/convite-festa.jpg`: versão otimizada da imagem enviada por JJ para o slide sobre horários sociais; esse assunto usa uma paleta própria em azul-carvão e dourado.
+- `assets/caramelo-*.webp`: oito imagens enviadas por JJ para a colagem do slide do cachorro caramelo, otimizadas e salvas localmente para que a apresentação não dependa dos sites de origem. Veja as fontes abaixo.
 - `vendor/`: Reveal.js, QRious e PeerJS mantidos localmente, com licença do PeerJS.
 - `openspec/`: especificações e histórico de mudanças.
+
+## Imagens do slide do cachorro caramelo
+
+Fontes na ordem da colagem:
+
+1. [Miniatura Google — camisa do Brasil](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-KsG7i-chL9ipNlfFIfetYbKFiLBdj8lurk2cFz0eqhQ5t0SGslXACBI&s=10)
+2. [iG — retrato na rua](https://i0.statig.com.br/bancodeimagens/2f/ym/i8/2fymi85z5vo5pcl5rsnsr3xgi.jpg)
+3. [TudoCelular — nota fictícia](https://t2.tudocdn.net/536039?w=1920)
+4. [Estadão — cores da bandeira](https://www.estadao.com.br/resizer/v2/GLAQZCER7JBMDPRWUTUG6SL25A.jpg?auth=4f4871c3c6b3b32534aae2f8c7484f75e2456e0dec814078233a44673a7ef9a7)
+5. [Netflix — cartaz de *Caramelo*](https://dnm.nflximg.net/api/v6/_YyUT33Ze3kFXjMydIZFIm6ajHk/AAAABTeaU6SPxtwdvZxUZIWa4Ed2YiKDy0QN1cIxS3uttrih4eg1mayGnEHFE8lqvbP6swK2bFoPoJyaUE1cWQ585bqFSsRoq0uPMjGt.jpg?r=faa)
+6. [Magnific — retrato](https://img.magnific.com/fotos-gratis/foto-vertical-de-um-cachorro-marrom-fofo-em-um-fundo-desfocado_181624-41411.jpg?semt=ais_hybrid&w=740&q=80)
+7. [O Globo — cachorro no sofá](https://s2-oglobo.glbimg.com/JitLZV2-7-YPW53krGkCBST0nrU=/0x0:3714x5200/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2024/t/e/UZWXRiT6akygOmZNcjpw/107647411-sa-rio-de-janeiro-rj-10-07-2024-cachorros-caramelo-na-foto-alberto-pereira-com-sua-cadel-3-.jpg)
+8. [Miniatura Google — cães na praia](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfHXoCToZQBZ_ktD5xOZBJp6c3sNMw_GxmCxKvp-5dcxH3bwBODZ_zFZM&s=10)
+
+A nota de R$ 200 é uma montagem humorística, não uma cédula real. As miniaturas do Google não identificam a fonte original. Os links registram a procedência, não uma licença de republicação.
 
 ## Fontes dos slides sobre diversidade
 
