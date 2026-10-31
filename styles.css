@@ -546,6 +546,109 @@ body {
 .caramelo-collage .caramelo-tile-5 { object-position: 50% 35%; }
 .caramelo-collage .caramelo-tile-8 { object-position: 50% 50%; }
 
+.reveal .slides > section.culinary-slide {
+  --culinary-ink: #48251e;
+  --culinary-accent: #b7492d;
+  position: absolute;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #fff1de;
+  color: var(--culinary-ink);
+  text-align: left;
+}
+
+.culinary-slide::before {
+  position: absolute;
+  top: -33%;
+  right: -8%;
+  width: 52%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(231, 153, 90, 0.18);
+  content: "";
+}
+
+.culinary-heading {
+  position: absolute;
+  top: 7%;
+  left: 6%;
+  width: 48%;
+}
+
+.reveal .culinary-eyebrow {
+  margin: 0 0 34px;
+  color: var(--culinary-accent);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.reveal .culinary-heading h2 {
+  margin: 0;
+  color: var(--culinary-ink);
+  font-size: 78px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+}
+
+.culinary-heading h2 span { color: var(--culinary-accent); }
+
+.reveal .culinary-lead {
+  position: absolute;
+  top: 12%;
+  right: 7%;
+  width: 38%;
+  margin: 0;
+  color: #704c3b;
+  font-size: 30px;
+  line-height: 1.37;
+}
+
+.culinary-lead strong { color: var(--culinary-ink); }
+
+.culinary-collage {
+  position: absolute;
+  top: 38%;
+  left: 6%;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: 40% 60%;
+  gap: 10px;
+  width: 88%;
+  height: 54%;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 23px;
+  background: #fffaf3;
+  box-shadow: 0 26px 65px rgba(105, 48, 27, 0.23);
+}
+
+.reveal .culinary-collage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.culinary-tile-1 { grid-area: 1 / 1 / 2 / 3; }
+.culinary-tile-2 { grid-area: 1 / 3 / 2 / 5; }
+.culinary-tile-3 { grid-area: 1 / 5 / 2 / 7; }
+.culinary-tile-4 { grid-area: 2 / 1 / 3 / 4; }
+.culinary-tile-5 { grid-area: 2 / 4 / 3 / 7; }
+
+.culinary-collage .culinary-tile-1 { object-position: 50% 58%; }
+.culinary-collage .culinary-tile-4 { object-position: 50% 56%; }
+
 .eyebrow {
   margin: 0 0 0.5rem;
   color: var(--accent);

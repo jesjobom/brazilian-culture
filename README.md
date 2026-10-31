@@ -31,6 +31,7 @@ No painel do apresentador, **Conexão do controle** oferece três modos. **Autom
 - `assets/torcedores-anhangabau.jpg`: foto de torcedores em São Paulo usada no slide sobre diversidade genética; imagem fornecida do [g1](https://g1.globo.com/sp/sao-paulo/noticia/2022/12/02/no-anhangabau-torcedores-prometem-raspar-cabelo-pedir-ficante-em-namoro-e-parar-de-fumar-se-o-brasil-trouxer-o-hexa.ghtml), crédito Fábio Tito/g1. A foto é ilustrativa: as pessoas retratadas não são participantes do estudo genômico.
 - `assets/convite-festa.jpg`: versão otimizada da imagem enviada por JJ para o slide sobre horários sociais; esse assunto usa uma paleta própria em azul-carvão e dourado.
 - `assets/caramelo-*.webp`: oito imagens enviadas por JJ para a colagem do slide do cachorro caramelo, otimizadas e salvas localmente para que a apresentação não dependa dos sites de origem. Veja as fontes abaixo.
+- `assets/culinaria-*.webp`: cinco imagens enviadas por JJ para a colagem do slide sobre culinária, otimizadas e salvas localmente. Veja as fontes abaixo.
 - `vendor/`: Reveal.js, QRious e PeerJS mantidos localmente, com licença do PeerJS.
 - `openspec/`: especificações e histórico de mudanças.
 
@@ -48,6 +49,18 @@ Fontes na ordem da colagem:
 8. [Miniatura Google — cães na praia](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfHXoCToZQBZ_ktD5xOZBJp6c3sNMw_GxmCxKvp-5dcxH3bwBODZ_zFZM&s=10)
 
 A nota de R$ 200 é uma montagem humorística, não uma cédula real. As miniaturas do Google não identificam a fonte original. Os links registram a procedência, não uma licença de republicação.
+
+## Imagens do slide sobre culinária
+
+Fontes na ordem da colagem:
+
+1. [Agro20 — arroz, feijão, ovo e linguiça](https://files.agro20.com.br/uploads/2020/03/comidabrasileira3.jpg)
+2. [Melhores Destinos — feijoada](https://www.melhoresdestinos.com.br/wp-content/uploads/2020/12/comidas-tipicas-capa2019-01.jpg)
+3. [Viva a Cidade News — pizzas](https://vivaacidadenews.com.br/wp-content/uploads/2026/07/abertura.jpg)
+4. [Estadão — pão de queijo](https://www.estadao.com.br/resizer/v2/GQBT6W6M2FCTBAHRCFPYPBN5IA.jpeg?auth=4f463f9950c33c9c5c3582930121a2b7e50c53ed29c151de3fdb2ca117578381)
+5. [Tudo Online em Campo Bom — sushi](https://www.tudoonlineemcampobom.com.br/wp-content/uploads/2022/09/sushi-comercial-internet-tipos.jpg)
+
+Os links registram a procedência, não uma licença de republicação.
 
 ## Fontes dos slides sobre diversidade
 
