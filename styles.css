@@ -547,14 +547,14 @@ body {
 .caramelo-collage .caramelo-tile-8 { object-position: 50% 50%; }
 
 .reveal .slides > section.culinary-slide {
-  --culinary-ink: #48251e;
-  --culinary-accent: #b7492d;
+  --culinary-ink: #153b49;
+  --culinary-accent: #bb315b;
   position: absolute;
   box-sizing: border-box;
   height: 100%;
   padding: 0 !important;
   overflow: hidden;
-  background: #fff1de;
+  background: #d7f1ee;
   color: var(--culinary-ink);
   text-align: left;
 }
@@ -566,7 +566,7 @@ body {
   width: 52%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: rgba(231, 153, 90, 0.18);
+  background: rgba(87, 192, 195, 0.28);
   content: "";
 }
 
@@ -603,7 +603,7 @@ body {
   right: 7%;
   width: 38%;
   margin: 0;
-  color: #704c3b;
+  color: #315b65;
   font-size: 30px;
   line-height: 1.37;
 }
@@ -623,8 +623,8 @@ body {
   padding: 10px;
   box-sizing: border-box;
   border-radius: 23px;
-  background: #fffaf3;
-  box-shadow: 0 26px 65px rgba(105, 48, 27, 0.23);
+  background: #165765;
+  box-shadow: 0 26px 65px rgba(18, 75, 87, 0.27);
 }
 
 .reveal .culinary-collage img {
