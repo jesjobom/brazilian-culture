@@ -22,11 +22,17 @@
           <input id="goto-slide" type="number" min="1" placeholder="1" inputmode="numeric" />
           <button id="btn-goto" class="remote-button tertiary" disabled>Ir para o slide</button>
         </div>
+        <section class="remote-notes-panel" aria-labelledby="remote-notes-title">
+          <h2 id="remote-notes-title">Notas do slide atual</h2>
+          <p id="remote-current-slide" class="remote-current-slide" aria-live="polite">Aguardando apresentação...</p>
+          <ul id="remote-notes-list" lang="fr" hidden></ul>
+          <p id="remote-notes-empty" class="remote-notes-empty">As notas aparecerão quando o controle conectar.</p>
+        </section>
         <p id="remote-feedback" class="remote-feedback" role="status">Inicializando...</p>
       </div>
     </main>
 
     <script src="vendor/peerjs.min.js"></script>
-    <script src="app.js?v=20261021-mode-switch"></script>
+    <script src="app.js?v=20261102-slide-notes"></script>
   </body>
 </html>

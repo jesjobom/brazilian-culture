@@ -12,7 +12,7 @@ function runPage(kind, search = '', peerAvailable = true) {
     if (!elements.has(id)) {
       const classes = new Set(id === 'remote-overlay' ? ['is-collapsed'] : []);
       elements.set(id, {
-        dataset: {}, disabled: true, value: '', textContent: '', listeners: {},
+        dataset: {}, disabled: true, hidden: false, value: '', textContent: '', listeners: {},
         classList: {
           contains: (name) => classes.has(name),
           add: (name) => classes.add(name),
@@ -52,13 +52,27 @@ function runPage(kind, search = '', peerAvailable = true) {
     reconnect() { this.disconnected = false; this.emit('open', this.id); }
   }
 
+  const slides = [
+    { title: 'Capa', notes: ['Apresentar o tema.'] },
+    { title: 'Diversidade', notes: ['Primeiro ponto.', 'Segundo ponto.'] },
+    { title: 'Sem notas', notes: [] },
+    { title: 'Último slide', notes: ['Encerrar.'] }
+  ].map(({ title, notes }) => ({
+    querySelector() { return { textContent: title }; },
+    querySelectorAll() { return notes.map((note) => ({ textContent: note })); }
+  }));
+  const deckEvents = {};
   const deck = {
-    nextCount: 0, prevCount: 0,
+    nextCount: 0, prevCount: 0, currentIndex: 0,
     initialize() {},
-    next() { this.nextCount += 1; },
-    prev() { this.prevCount += 1; },
-    slide(index) { this.lastSlide = index; },
-    getTotalSlides() { return 4; }
+    on(name, callback) { deckEvents[name] = callback; },
+    emit(name) { deckEvents[name]?.(); },
+    next() { this.nextCount += 1; this.currentIndex = Math.min(this.currentIndex + 1, slides.length - 1); this.emit('slidechanged'); },
+    prev() { this.prevCount += 1; this.currentIndex = Math.max(this.currentIndex - 1, 0); this.emit('slidechanged'); },
+    slide(index) { this.lastSlide = index; this.currentIndex = index; this.emit('slidechanged'); },
+    getTotalSlides() { return slides.length; },
+    getCurrentSlide() { return slides[this.currentIndex]; },
+    getIndices() { return { h: this.currentIndex, v: 0 }; }
   };
   const location = {
     href: `https://example.test/${kind === 'remote' ? 'remote' : 'index'}.html${search}`,
@@ -109,7 +123,7 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
-  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261021-mode-switch');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261102-slide-notes');
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('transport'), 'auto');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
@@ -161,6 +175,25 @@ test('apresentação aceita somente comandos de navegação válidos', () => {
   assert.equal(page.deck.lastSlide, 3);
 });
 
+test('apresentação envia slide e notas ao conectar e após navegação local ou remota', () => {
+  const page = runPage('presentation', `?session=${'ab'.repeat(16)}`);
+  const connection = new page.MockConnection('remote');
+  page.peers[0].emit('connection', connection);
+  connection.emit('open');
+  assert.equal(JSON.stringify(connection.sent[0]), JSON.stringify({
+    action: 'slide-state', h: 0, title: 'Capa', notes: ['Apresentar o tema.']
+  }));
+
+  page.deck.slide(1);
+  assert.equal(JSON.stringify(connection.sent[1]), JSON.stringify({
+    action: 'slide-state', h: 1, title: 'Diversidade', notes: ['Primeiro ponto.', 'Segundo ponto.']
+  }));
+  connection.emit('data', { action: 'next' });
+  assert.equal(JSON.stringify(connection.sent[2]), JSON.stringify({
+    action: 'slide-state', h: 2, title: 'Sem notas', notes: []
+  }));
+});
+
 test('controle conecta diretamente, envia comandos e desabilita ao desconectar', () => {
   const page = runPage('remote', `?session=${'cd'.repeat(16)}`);
   assert.equal(page.getElement('btn-next').disabled, true);
@@ -177,6 +210,31 @@ test('controle conecta diretamente, envia comandos e desabilita ao desconectar',
   assert.equal(JSON.stringify(connection.sent), JSON.stringify([{ action: 'next' }, { action: 'goto', h: 1 }]));
   connection.emit('close');
   assert.equal(page.getElement('btn-next').disabled, true);
+});
+
+test('controle mostra notas do slide atual e limpa estado ao perder a conexão', () => {
+  const page = runPage('remote', `?session=${'cd'.repeat(16)}`);
+  page.peers[0].emit('open');
+  const connection = page.peers[0].connections[0];
+  connection.emit('open');
+  connection.emit('data', { action: 'slide-state', h: 1, title: 'Diversidade', notes: ['Primeiro ponto.', 'Segundo ponto.'] });
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide 2 · Diversidade');
+  assert.equal(page.getElement('remote-notes-list').hidden, false);
+  assert.deepEqual(page.getElement('remote-notes-list').children.map((item) => item.textContent), ['Primeiro ponto.', 'Segundo ponto.']);
+  assert.equal(page.getElement('remote-notes-empty').hidden, true);
+
+  connection.emit('close');
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide atual indisponível');
+  assert.equal(page.getElement('remote-notes-list').hidden, true);
+  assert.equal(page.getElement('remote-notes-list').children.length, 0);
+
+  page.runTimeout(2000);
+  const reconnected = page.peers[0].connections[1];
+  reconnected.emit('open');
+  reconnected.emit('data', { action: 'slide-state', h: 2, title: 'Sem notas', notes: [] });
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide 3 · Sem notas');
+  assert.equal(page.getElement('remote-notes-empty').textContent, 'Sem notas para este slide.');
+  assert.equal(page.getElement('remote-notes-empty').hidden, false);
 });
 
 test('controle detecta apresentação sem resposta e desabilita comandos', () => {

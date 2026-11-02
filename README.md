@@ -18,6 +18,12 @@ A apresentação gera um ID de sessão aleatório na URL e mostra um QR code que
 
 O link da sessão funciona como chave de acesso ao controle; compartilhe-o apenas com quem deve controlar a apresentação. Ambos os dispositivos precisam de acesso à internet para o pareamento. Em algumas combinações de redes/NATs, a conexão direta pode falhar sem um serviço TURN. O PeerJS Cloud é gratuito e não oferece garantia de disponibilidade para uma apresentação crítica; nesse caso, um serviço gerenciado como Firebase Realtime Database é uma alternativa mais previsível, também sem servidor próprio.
 
+### Notas do slide no controle
+
+O controle mostra o número, título e notas do slide que está **realmente visível** na apresentação. O apresentador envia esse estado ao conectar, em cada troca de slide (inclusive por teclado) e após reconectar; os comandos próximo/anterior/ir para slide continuam iguais. Se a conexão cair, o controle deixa de exibir as notas antigas como atuais.
+
+As notas são bullets curtos e estáticos em francês, guardados dentro de cada `<section>` de `index.html` como `<aside class="remote-notes" hidden><ul><li>...</li></ul></aside>`. Para editar, altere os itens da lista do slide correspondente; para não mostrar notas, deixe a lista vazia. Elas fazem parte do HTML público, portanto não coloque informações privadas ali.
+
 No painel do apresentador, **Conexão do controle** oferece três modos. **Automático** tenta conexão direta e pode recorrer ao TURN do Metered; **Direto** usa apenas STUN; **Somente TURN (TLS/443)** força o relay para testar redes restritivas. Mudar o modo recarrega a apresentação, mantém o painel aberto e cria uma nova sessão com QR code atualizado para evitar conflitos com a conexão anterior. Abra novamente o controle após a troca. As credenciais TURN estão no JavaScript público, conforme a configuração fornecida para este teste; limite a quota no Metered e desative ou troque a credencial quando não for mais necessária. O TURN não substitui a sinalização PeerJS.
 
 ## Arquivos
