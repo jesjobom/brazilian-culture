@@ -38,6 +38,7 @@ No painel do apresentador, **Conexão do controle** oferece três modos. **Autom
 - `assets/convite-festa.jpg`: versão otimizada da imagem enviada por JJ para o slide sobre horários sociais; esse assunto usa uma paleta própria em azul-carvão e dourado.
 - `assets/caramelo-*.webp`: oito imagens enviadas por JJ para a colagem do slide do cachorro caramelo, otimizadas e salvas localmente para que a apresentação não dependa dos sites de origem. Veja as fontes abaixo.
 - `assets/culinaria-*.webp`: cinco imagens enviadas por JJ para a colagem do slide sobre culinária, otimizadas e salvas localmente. Veja as fontes abaixo.
+- `assets/carnaval-desfile.jpg` e `assets/futebol-selecao.jpg`: imagens enviadas por JJ para o slide sobre carnaval e futebol, salvas localmente. Veja as fontes abaixo.
 - `vendor/`: Reveal.js, QRious e PeerJS mantidos localmente, com licença do PeerJS.
 - `openspec/`: especificações e histórico de mudanças.
 
@@ -65,6 +66,13 @@ Fontes na ordem da colagem:
 3. [Viva a Cidade News — pizzas](https://vivaacidadenews.com.br/wp-content/uploads/2026/07/abertura.jpg)
 4. [Estadão — pão de queijo](https://www.estadao.com.br/resizer/v2/GQBT6W6M2FCTBAHRCFPYPBN5IA.jpeg?auth=4f463f9950c33c9c5c3582930121a2b7e50c53ed29c151de3fdb2ca117578381)
 5. [Tudo Online em Campo Bom — sushi](https://www.tudoonlineemcampobom.com.br/wp-content/uploads/2022/09/sushi-comercial-internet-tipos.jpg)
+
+Os links registram a procedência, não uma licença de republicação.
+
+## Imagens do slide sobre carnaval e futebol
+
+1. [Observador — desfile de carnaval](https://bordalo.observador.pt/v2/q:60/rs:fill:1440/c:770:433:nowe:0:0/plain/https://s3.observador.pt/wp-content/uploads/2015/02/476579433_770x433_acf_cropped.jpg)
+2. [Amazonas Atual — seleção brasileira de futebol](https://amazonasatual.com.br/wp-content/uploads/2023/06/Lucas-Paqueta-761x533.jpg)
 
 Os links registram a procedência, não uma licença de republicação.
 
