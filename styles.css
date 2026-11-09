@@ -778,6 +778,59 @@ body {
 
 .carnaval-football-caveat strong { color: var(--cf-accent); }
 
+.reveal .slides > section.thanks-slide {
+  position: absolute;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 !important;
+  overflow: hidden;
+  isolation: isolate;
+  background: #fbf6e8;
+  color: #183b31;
+  text-align: left;
+}
+
+.thanks-copy {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 10%;
+  transform: translateY(-50%);
+}
+
+.thanks-copy::before {
+  display: block;
+  width: 72px;
+  height: 6px;
+  margin-bottom: 34px;
+  border-radius: 3px;
+  background: #e5b833;
+  content: "";
+}
+
+.reveal .thanks-copy h2 {
+  margin: 0;
+  color: #26794d;
+  font-size: 156px;
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+}
+
+.thanks-art {
+  position: absolute;
+  top: 50%;
+  right: 7%;
+  width: auto;
+  height: 98%;
+  max-width: none;
+  margin: 0;
+  transform: translateY(-50%);
+  object-fit: contain;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
 .reveal .remote-notes { display: none; }
 
 .eyebrow {
