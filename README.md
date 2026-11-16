@@ -34,7 +34,6 @@ No painel do apresentador, **Conexão do controle** oferece três modos. **Autom
 - `styles.css`: estilos base.
 - `assets/brazil-fingerprint.png`: imagem da capa, obtida da [Uninter](https://www.uninter.com/noticias/wp-content/uploads/2021/05/noticias_brazil-652855_1920-1024x1621.png).
 - `assets/diversidade-cultural-no-brasil.jpg`: imagem ilustrativa do slide sobre comunidades, obtida do [blog Quindim](https://quindim.com.br/blog/wp-content/uploads/2021/06/Diversidade-cultural-no-Brasil.jpg). Não representa pessoas ou comunidades específicas mencionadas no slide.
-- `assets/torcedores-anhangabau.jpg`: foto de torcedores em São Paulo usada no slide sobre diversidade genética; imagem fornecida do [g1](https://g1.globo.com/sp/sao-paulo/noticia/2022/12/02/no-anhangabau-torcedores-prometem-raspar-cabelo-pedir-ficante-em-namoro-e-parar-de-fumar-se-o-brasil-trouxer-o-hexa.ghtml), crédito Fábio Tito/g1. A foto é ilustrativa: as pessoas retratadas não são participantes do estudo genômico.
 - `assets/convite-festa.jpg`: versão otimizada da imagem enviada por JJ para o slide sobre horários sociais; esse assunto usa uma paleta própria em azul-carvão e dourado.
 - `assets/caramelo-*.webp`: oito imagens enviadas por JJ para a colagem do slide do cachorro caramelo, otimizadas e salvas localmente para que a apresentação não dependa dos sites de origem. Veja as fontes abaixo.
 - `assets/culinaria-*.webp`: cinco imagens enviadas por JJ para a colagem do slide sobre culinária, otimizadas e salvas localmente. Veja as fontes abaixo.
@@ -76,10 +75,8 @@ Os links registram a procedência, não uma licença de republicação.
 
 Os links registram a procedência, não uma licença de republicação.
 
-## Fontes dos slides sobre diversidade
+## Fontes do slide sobre comunidades
 
 - A nuvem do primeiro slide usa **faixas visuais indicativas**, não áreas proporcionais nem categorias somáveis. As estimativas de descendência podem se sobrepor e têm metodologias diferentes. Para “afro-brasileiras”, o tamanho usa como aproximação os 112,7 milhões de pessoas que se declararam pretas ou pardas no [Censo 2022 do IBGE](https://sidra.ibge.gov.br/pesquisa/censo-demografico/demografico-2022/universo-populacao-por-cor-ou-raca); isso não é uma contagem exata de afrodescendentes.
 - Italianos: mais de 30 milhões de descendentes, segundo a [Embaixada da Itália](https://ambbrasilia.esteri.it/pt/news/dall_ambasciata/2023/06/mensagem-do-embaixador-azzarello-a-comunidade-italiana-e-italo-brasileira-por-ocasiao-da-77a-festa-da-republica-2-de-junho-de-2023/). Árabes: cerca de 11,6 milhões, segundo [pesquisa Ibope/H2R encomendada pela Câmara Árabe-Brasileira](https://anba.com.br/en/arabs-descendants-are-6-of-brazils-population-survey/). Alemães: cerca de 6,1 milhões, segundo o [Parlamento alemão](https://www.bundestag.de/presse/hib/836702-836702).
 - Japoneses: mais de 1,5 milhão, segundo o [Tribunal de Contas do Município de São Paulo](https://lgpd.tcm.sp.gov.br/Pagina/66368). Poloneses: estimativas de aproximadamente 0,8 a 3 milhões, conforme o [governo polonês](https://www.gov.pl/web/irjp/rozmowa-o-przyszlosci-jezyka-polskiego-w-brazylii) e a [Polish Academy of Sciences](https://journals.pan.pl/Content/131484/48-51_Radomski_EN.pdf?handler=pdf); por isso as duas tags têm o mesmo tamanho.
-- [Nunes et al., *Science* (2025)](https://doi.org/10.1126/science.adl3564): o estudo examina processos de miscigenação desde 1500. Os autores usam a expressão “maior população recentemente miscigenada”, que não significa maior grau de miscigenação; o slide evita esse superlativo ambíguo.
-- [Jornal da USP](https://jornal.usp.br/ciencias/estudo-mapeia-impactos-da-miscigenacao-no-dna-e-na-saude-da-populacao-brasileira/): os percentuais 60%/27%/13% são médias dos 2.723 genomas analisados, não estimativas nacionais. Os resultados variam conforme a composição da amostra e a região.
