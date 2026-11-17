@@ -20,7 +20,7 @@ O link da sessão funciona como chave de acesso ao controle; compartilhe-o apena
 
 ### Notas do slide no controle
 
-O controle mostra o número, título, **texto visível** e notas do slide que está realmente visível na apresentação. O apresentador envia esse estado ao conectar, em cada troca de slide (inclusive por teclado) e após reconectar. O texto é extraído dos títulos, parágrafos, itens de lista e legendas do HTML do slide, em ordem; imagens e notas ocultas não entram nessa seção. Se a conexão cair, o controle deixa de exibir textos e notas antigos como atuais.
+O controle mostra o número, título, **texto visível** e notas do slide que está realmente visível na apresentação. O apresentador envia esse estado ao conectar, em cada troca de slide (inclusive por teclado) e após reconectar. O texto é extraído dos títulos, parágrafos, itens de lista e legendas do HTML do slide, em ordem; imagens, notas ocultas e elementos marcados com `data-remote-exclude` não entram nessa seção. A lista de nacionalidades do slide 1 e a observação sobre o tamanho das palavras usam essa marcação: permanecem projetadas, mas não aparecem no controle. Se a conexão cair, o controle deixa de exibir textos e notas antigos como atuais.
 
 No celular, texto e notas ficam numa área de leitura rolável; os botões anterior/próximo permanecem visíveis no rodapé. A seleção numérica de slide e os detalhes da conexão ficam recolhidos por padrão para economizar espaço. Os três comandos de navegação continuam disponíveis.
 

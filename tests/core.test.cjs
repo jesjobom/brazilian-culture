@@ -54,15 +54,16 @@ function runPage(kind, search = '', peerAvailable = true) {
 
   const slides = [
     { title: 'Capa', text: ['Capa', 'Pequenas coisas do Brasil.'], notes: ['Apresentar o tema.'] },
-    { title: 'Diversidade', text: ['Diversidade\n brasileira', 'Muitas origens.', 'Japonaises'], notes: ['Primeiro ponto.', 'Segundo ponto.'] },
+    { title: 'Diversidade', text: ['Diversidade\n brasileira', 'Muitas origens.', 'Japonaises', 'Tailles indicatives.'], excludedText: ['Japonaises', 'Tailles indicatives.'], notes: ['Primeiro ponto.', 'Segundo ponto.'] },
     { title: 'Sem notas', text: ['Sem notas'], notes: [] },
     { title: 'Último slide', text: ['Último slide'], notes: ['Encerrar.'] }
-  ].map(({ title, text, notes }) => ({
+  ].map(({ title, text, excludedText = [], notes }) => ({
     querySelector() { return { textContent: title }; },
     querySelectorAll(selector) {
       const noteElements = notes.map((note) => ({ textContent: note, closest: () => ({}) }));
       if (selector === '.remote-notes li') return noteElements;
-      return [...text.map((value) => ({ innerText: value, closest: () => null })), ...noteElements];
+      return [...text.map((value) => ({ innerText: value, closest: (selector) =>
+        excludedText.includes(value) && selector.includes('[data-remote-exclude]') ? {} : null })), ...noteElements];
     }
   }));
   const deckEvents = {};
@@ -128,7 +129,7 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
-  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261117-compact-remote');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261117-remote-text-filter');
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('transport'), 'auto');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
@@ -191,7 +192,7 @@ test('apresentação envia texto visível e notas ao conectar e após navegaçã
 
   page.deck.slide(1);
   assert.equal(JSON.stringify(connection.sent[1]), JSON.stringify({
-    action: 'slide-state', h: 1, title: 'Diversidade', slideText: ['Diversidade brasileira', 'Muitas origens.', 'Japonaises'], notes: ['Primeiro ponto.', 'Segundo ponto.']
+    action: 'slide-state', h: 1, title: 'Diversidade', slideText: ['Diversidade brasileira', 'Muitas origens.'], notes: ['Primeiro ponto.', 'Segundo ponto.']
   }));
   connection.emit('data', { action: 'next' });
   assert.equal(JSON.stringify(connection.sent[2]), JSON.stringify({

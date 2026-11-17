@@ -50,7 +50,7 @@ function remoteUrlFor(sessionId, mode) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
   url.searchParams.set('transport', mode);
-  url.searchParams.set('v', '20261117-compact-remote');
+  url.searchParams.set('v', '20261117-remote-text-filter');
   url.hash = '';
   return url.toString();
 }
@@ -107,7 +107,7 @@ function currentSlideState(deck) {
   const heading = slide.querySelector('h1, h2');
   const title = (heading?.innerText ?? heading?.textContent ?? '').trim().replace(/\s+/g, ' ') || `Slide ${h + 1}`;
   const slideText = Array.from(slide.querySelectorAll('h1, h2, p, li, figcaption'))
-    .filter((element) => !element.closest('.remote-notes'))
+    .filter((element) => !element.closest('.remote-notes, [data-remote-exclude]'))
     .map((element) => (element.innerText ?? element.textContent ?? '').trim().replace(/\s+/g, ' '))
     .filter(Boolean);
   const notes = Array.from(slide.querySelectorAll('.remote-notes li'), (item) => item.textContent.trim()).filter(Boolean);
