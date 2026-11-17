@@ -50,7 +50,7 @@ function remoteUrlFor(sessionId, mode) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
   url.searchParams.set('transport', mode);
-  url.searchParams.set('v', '20261117-remote-text-filter');
+  url.searchParams.set('v', '20261117-offline-notes');
   url.hash = '';
   return url.toString();
 }
@@ -99,9 +99,7 @@ function handleCommand(deck, data) {
   }
 }
 
-function currentSlideState(deck) {
-  const slide = deck.getCurrentSlide();
-  const h = deck.getIndices().h;
+function slideStateFromElement(slide, h) {
   if (!slide || !Number.isSafeInteger(h) || h < 0) return null;
 
   const heading = slide.querySelector('h1, h2');
@@ -112,6 +110,23 @@ function currentSlideState(deck) {
     .filter(Boolean);
   const notes = Array.from(slide.querySelectorAll('.remote-notes li'), (item) => item.textContent.trim()).filter(Boolean);
   return { action: 'slide-state', h, title, slideText, notes };
+}
+
+function currentSlideState(deck) {
+  return slideStateFromElement(deck.getCurrentSlide(), deck.getIndices().h);
+}
+
+async function loadLocalSlides() {
+  const remoteUrl = new URL(window.location.href);
+  const slideUrl = new URL('index.html', remoteUrl);
+  if (remoteUrl.searchParams.has('v')) slideUrl.searchParams.set('v', remoteUrl.searchParams.get('v'));
+  const response = await window.fetch(slideUrl);
+  if (!response.ok) throw new Error(`HTML da apresentação indisponível (${response.status})`);
+  const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+  page.querySelectorAll('br').forEach((breakElement) => breakElement.replaceWith(' '));
+  const slides = Array.from(page.querySelectorAll('.reveal .slides > section'), slideStateFromElement);
+  if (!slides.length || slides.some((slide) => !slide)) throw new Error('Nenhum slide encontrado no HTML da apresentação');
+  return slides;
 }
 
 function sendSlideState(deck, connection) {
@@ -239,6 +254,22 @@ function initializeRemote() {
   const slideTextEmpty = document.getElementById('remote-slide-text-empty');
   const notesList = document.getElementById('remote-notes-list');
   const notesEmpty = document.getElementById('remote-notes-empty');
+  const prevButton = document.getElementById('btn-prev');
+  const nextButton = document.getElementById('btn-next');
+  const gotoButton = document.getElementById('btn-goto');
+  let connection = null;
+  let localSlides = [];
+  let localIndex = 0;
+  let lastPresentedIndex = null;
+  let showingLiveState = false;
+  let localLoadError = false;
+
+  function updateNavigation() {
+    const connected = Boolean(connection?.open);
+    prevButton.disabled = !connected && (!localSlides.length || localIndex === 0);
+    nextButton.disabled = !connected && (!localSlides.length || localIndex === localSlides.length - 1);
+    gotoButton.disabled = !connected && !localSlides.length;
+  }
 
   function clearSlideState(message) {
     currentSlide.textContent = 'Slide atual indisponível';
@@ -252,14 +283,14 @@ function initializeRemote() {
     notesEmpty.hidden = false;
   }
 
-  function renderSlideState(data) {
+  function renderSlideState(data, local = false) {
     if (!Number.isSafeInteger(data.h) || data.h < 0 || typeof data.title !== 'string' ||
         (data.slideText !== undefined && (!Array.isArray(data.slideText) || data.slideText.length > 40 ||
           data.slideText.some((text) => typeof text !== 'string' || text.length > 1000))) ||
         !Array.isArray(data.notes) || data.notes.length > 20 ||
-        data.notes.some((note) => typeof note !== 'string' || note.length > 1000)) return;
+        data.notes.some((note) => typeof note !== 'string' || note.length > 1000)) return false;
 
-    currentSlide.textContent = `Slide ${data.h + 1} · ${data.title}`;
+    currentSlide.textContent = `${local ? 'Consulta local · ' : ''}Slide ${data.h + 1} · ${data.title}`;
     const textBlocks = (data.slideText ?? []).map((text) => {
       const paragraph = document.createElement('p');
       paragraph.textContent = text;
@@ -280,11 +311,52 @@ function initializeRemote() {
     notesEmpty.textContent = 'Sem notas para este slide.';
     notesEmpty.hidden = items.length > 0;
     reading.scrollTop = 0;
+    return true;
   }
+
+  function showLocalSlide() {
+    if (localSlides.length) renderSlideState(localSlides[localIndex], true);
+    else clearSlideState(localLoadError ? 'Notas locais indisponíveis. Verifique o acesso à apresentação.' : 'Carregando notas para consulta local...');
+    updateNavigation();
+  }
+
+  function navigateLocal(action, h) {
+    if (!localSlides.length) return;
+    const nextIndex = action === 'next' ? localIndex + 1 : action === 'prev' ? localIndex - 1 : h;
+    if (!Number.isSafeInteger(nextIndex) || nextIndex < 0 || nextIndex >= localSlides.length) {
+      if (action === 'goto') setStatus(feedback, 'Slide fora da consulta local', 'warn');
+      return;
+    }
+    localIndex = nextIndex;
+    showLocalSlide();
+  }
+
+  prevButton.addEventListener('click', () => send('prev'));
+  nextButton.addEventListener('click', () => send('next'));
+  gotoButton.addEventListener('click', () => {
+    const raw = document.getElementById('goto-slide').value;
+    const slideNumber = Number(raw);
+    if (!Number.isSafeInteger(slideNumber) || slideNumber < 1) {
+      setStatus(feedback, 'Informe um número de slide válido.', 'error');
+      return;
+    }
+    send('goto', { h: slideNumber - 1 });
+  });
+
+  showLocalSlide();
+  loadLocalSlides().then((slides) => {
+    localSlides = slides;
+    if (lastPresentedIndex !== null && lastPresentedIndex < slides.length) localIndex = lastPresentedIndex;
+    if (!showingLiveState) showLocalSlide();
+    else updateNavigation();
+  }).catch((error) => {
+    console.error(error);
+    localLoadError = true;
+    if (!showingLiveState) showLocalSlide();
+  });
 
   if (!sessionId || !sessionPattern.test(sessionId)) {
     setStatus(feedback, 'Sessão ausente ou inválida. Abra o QR code da apresentação.', 'error');
-    clearSlideState('Abra o QR code da apresentação para ver as notas.');
     return;
   }
   document.getElementById('remote-session-id').textContent = sessionId;
@@ -296,14 +368,10 @@ function initializeRemote() {
 
   if (!window.Peer) {
     setStatus(feedback, 'Biblioteca do controle remoto indisponível', 'error');
-    clearSlideState('Não foi possível conectar à apresentação.');
     return;
   }
 
-  const buttons = ['btn-next', 'btn-prev', 'btn-goto'].map((id) => document.getElementById(id));
-  const setConnected = (connected) => buttons.forEach((button) => { button.disabled = !connected; });
   const peer = new Peer(peerOptions(mode));
-  let connection = null;
   let retryTimer = 0;
   let connectTimeout = 0;
   let heartbeatId = 0;
@@ -319,12 +387,13 @@ function initializeRemote() {
 
   function connectionLost(candidate, message) {
     if (connection !== candidate) return;
+    connection = null;
     window.clearTimeout(connectTimeout);
     window.clearInterval(heartbeatId);
     heartbeatId = 0;
-    setConnected(false);
     setStatus(feedback, message, 'warn');
-    clearSlideState('Reconectando à apresentação...');
+    showingLiveState = false;
+    showLocalSlide();
     scheduleReconnect();
   }
 
@@ -337,46 +406,53 @@ function initializeRemote() {
     connectTimeout = window.setTimeout(() => {
       if (connection !== candidate || candidate.open) return;
       const message = connectionTimeoutMessage(candidate);
-      candidate.close();
       connectionLost(candidate, message);
+      candidate.close();
     }, 20000);
 
     candidate.on('open', () => {
       if (connection !== candidate) return;
       window.clearTimeout(connectTimeout);
-      setConnected(true);
+      updateNavigation();
       setStatus(feedback, 'Conectado. Controle pronto.', 'ok');
       lastPong = Date.now();
       heartbeatId = window.setInterval(() => {
         if (connection !== candidate || !candidate.open) return;
         if (Date.now() - lastPong > 9000) {
-          candidate.close();
           connectionLost(candidate, 'Apresentação não responde; tentando novamente');
+          candidate.close();
           return;
         }
         try {
           candidate.send({ action: 'ping' });
         } catch (error) {
-          candidate.close();
           connectionLost(candidate, 'Conexão perdida; tentando novamente');
+          candidate.close();
         }
       }, 3000);
     });
     candidate.on('data', (data) => {
       if (connection !== candidate) return;
       if (data?.action === 'pong') lastPong = Date.now();
-      if (data?.action === 'slide-state') renderSlideState(data);
+      if (data?.action === 'slide-state' && renderSlideState(data)) {
+        showingLiveState = true;
+        lastPresentedIndex = data.h;
+        if (data.h < localSlides.length) localIndex = data.h;
+      }
     });
     candidate.on('close', () => connectionLost(candidate, 'Conexão perdida; tentando novamente'));
-    candidate.on('error', () => connectionLost(candidate, 'Falha na conexão; tentando novamente'));
+    candidate.on('error', () => {
+      connectionLost(candidate, 'Falha na conexão; tentando novamente');
+      candidate.close();
+    });
   }
 
   peer.on('open', connect);
   peer.on('disconnected', () => {
     if (!connection?.open) {
-      setConnected(false);
       setStatus(feedback, 'Sinalização desconectada; tentando novamente', 'warn');
-      clearSlideState('Reconectando à apresentação...');
+      showingLiveState = false;
+      showLocalSlide();
     }
     scheduleReconnect();
   });
@@ -386,8 +462,9 @@ function initializeRemote() {
       ? 'Sessão não localizada no PeerJS; confira os códigos de sessão'
       : `Falha no pareamento (${error.type || 'desconhecida'}); tentando novamente`;
     if (connection) {
-      connection.close();
-      connectionLost(connection, message);
+      const candidate = connection;
+      connectionLost(candidate, message);
+      candidate.close();
     } else {
       setStatus(feedback, message, 'warn');
       scheduleReconnect();
@@ -396,7 +473,7 @@ function initializeRemote() {
 
   function send(action, extra = {}) {
     if (!connection?.open) {
-      setStatus(feedback, 'Controle desconectado', 'warn');
+      navigateLocal(action, extra.h);
       return;
     }
     try {
@@ -408,17 +485,6 @@ function initializeRemote() {
     }
   }
 
-  document.getElementById('btn-next').addEventListener('click', () => send('next'));
-  document.getElementById('btn-prev').addEventListener('click', () => send('prev'));
-  document.getElementById('btn-goto').addEventListener('click', () => {
-    const raw = document.getElementById('goto-slide').value;
-    const slideNumber = Number(raw);
-    if (!Number.isSafeInteger(slideNumber) || slideNumber < 1) {
-      setStatus(feedback, 'Informe um número de slide válido.', 'error');
-      return;
-    }
-    send('goto', { h: slideNumber - 1 });
-  });
 }
 
 if (document.body.classList.contains('presentation-page')) initializePresentation();

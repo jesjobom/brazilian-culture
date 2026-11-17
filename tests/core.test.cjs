@@ -85,6 +85,10 @@ function runPage(kind, search = '', peerAvailable = true) {
   };
   const intervals = [];
   const timeouts = [];
+  const errors = [];
+  let resolveLocalFetch;
+  let requestedLocalUrl;
+  const localFetch = new Promise((resolve) => { resolveLocalFetch = resolve; });
   let now = 0;
   const window = {
     location,
@@ -92,6 +96,7 @@ function runPage(kind, search = '', peerAvailable = true) {
     crypto: { getRandomValues(bytes) { bytes.fill(10); } },
     Peer: peerAvailable ? MockPeer : undefined,
     QRious: class {},
+    fetch(url) { requestedLocalUrl = String(url); return localFetch; },
     clearTimeout(id) { if (timeouts[id - 1]) timeouts[id - 1].cleared = true; },
     setTimeout(callback, delay) { timeouts.push({ callback, delay, cleared: false }); return timeouts.length; },
     setInterval(callback) { intervals.push(callback); return intervals.length; },
@@ -109,11 +114,21 @@ function runPage(kind, search = '', peerAvailable = true) {
     Reveal: class { constructor() { return deck; } },
     QRious: window.QRious,
     Peer: MockPeer,
-    URL, Uint8Array, Date: { now: () => now }, console
+    DOMParser: class {
+      parseFromString() {
+        return { querySelectorAll: (selector) => selector === '.reveal .slides > section' ? slides : [] };
+      }
+    },
+    URL, Uint8Array, Date: { now: () => now }, console: { error: (error) => errors.push(error) }
   }, { filename: 'app.js' });
 
   return {
-    getElement, peers, deck, location, MockConnection,
+    getElement, peers, deck, location, MockConnection, errors,
+    async resolveLocalSlides(response = { ok: true, text: async () => '<html></html>' }) {
+      resolveLocalFetch(response);
+      await new Promise(setImmediate);
+      return requestedLocalUrl;
+    },
     advance(milliseconds) { now += milliseconds; intervals.forEach((callback) => callback()); },
     runTimeout(delay) {
       const timeout = timeouts.find((item) => item.delay === delay && !item.cleared);
@@ -129,7 +144,7 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
-  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261117-remote-text-filter');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261117-offline-notes');
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('transport'), 'auto');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
@@ -200,7 +215,7 @@ test('apresentação envia texto visível e notas ao conectar e após navegaçã
   }));
 });
 
-test('controle conecta diretamente, envia comandos e desabilita ao desconectar', () => {
+test('controle conectado envia comandos à apresentação', () => {
   const page = runPage('remote', `?session=${'cd'.repeat(16)}`);
   assert.equal(page.getElement('btn-next').disabled, true);
   page.peers[0].emit('open');
@@ -218,8 +233,10 @@ test('controle conecta diretamente, envia comandos e desabilita ao desconectar',
   assert.equal(page.getElement('btn-next').disabled, true);
 });
 
-test('controle mostra texto e notas do slide atual e limpa ambos ao perder a conexão', () => {
+test('controle mostra o estado sincronizado e volta à consulta local após desconexão', async () => {
   const page = runPage('remote', `?session=${'cd'.repeat(16)}`);
+  assert.equal(await page.resolveLocalSlides(), `https://example.test/index.html`);
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Consulta local · Slide 1 · Capa');
   page.peers[0].emit('open');
   const connection = page.peers[0].connections[0];
   connection.emit('open');
@@ -236,20 +253,82 @@ test('controle mostra texto e notas do slide atual e limpa ambos ao perder a con
   assert.equal(page.getElement('.remote-reading').scrollTop, 0);
 
   connection.emit('close');
-  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide atual indisponível');
-  assert.equal(page.getElement('remote-slide-text-list').children.length, 0);
-  assert.equal(page.getElement('remote-slide-text-empty').hidden, false);
-  assert.equal(page.getElement('remote-notes-list').hidden, true);
-  assert.equal(page.getElement('remote-notes-list').children.length, 0);
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Consulta local · Slide 3 · Sem notas');
+  assert.equal(page.getElement('btn-next').disabled, false);
+  page.getElement('btn-next').listeners.click();
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Consulta local · Slide 4 · Último slide');
+  assert.equal(page.getElement('btn-next').disabled, true);
+  assert.equal(connection.sent.some((item) => item.action === 'next'), false);
 
   page.runTimeout(2000);
   const reconnected = page.peers[0].connections[1];
   reconnected.emit('open');
-  reconnected.emit('data', { action: 'slide-state', h: 2, title: 'Sem notas', slideText: ['Sem notas'], notes: [] });
-  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide 3 · Sem notas');
-  assert.deepEqual(page.getElement('remote-slide-text-list').children.map((item) => item.textContent), ['Sem notas']);
-  assert.equal(page.getElement('remote-notes-empty').textContent, 'Sem notas para este slide.');
-  assert.equal(page.getElement('remote-notes-empty').hidden, false);
+  reconnected.emit('data', { action: 'slide-state', h: 1, title: 'Diversidade', slideText: ['Texto projetado'], notes: ['Nota atual'] });
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide 2 · Diversidade');
+  assert.deepEqual(page.getElement('remote-notes-list').children.map((item) => item.textContent), ['Nota atual']);
+  assert.equal(reconnected.sent.some((item) => item.action === 'goto'), false);
+});
+
+test('sem pareamento, controle navega localmente inclusive por número sem mover a apresentação', async () => {
+  const page = runPage('remote', `?session=${'de'.repeat(16)}&v=20261117-offline-notes`);
+  assert.equal(await page.resolveLocalSlides(), 'https://example.test/index.html?v=20261117-offline-notes');
+  assert.equal(page.getElement('btn-prev').disabled, true);
+  assert.equal(page.getElement('btn-next').disabled, false);
+  page.peers[0].emit('open');
+  page.peers[0].emit('error', { type: 'peer-unavailable' });
+  page.getElement('btn-next').listeners.click();
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Consulta local · Slide 2 · Diversidade');
+  assert.deepEqual(page.getElement('remote-notes-list').children.map((item) => item.textContent), ['Primeiro ponto.', 'Segundo ponto.']);
+  page.getElement('goto-slide').value = '4';
+  page.getElement('btn-goto').listeners.click();
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Consulta local · Slide 4 · Último slide');
+  assert.equal(page.getElement('btn-next').disabled, true);
+  page.getElement('btn-next').listeners.click();
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Consulta local · Slide 4 · Último slide');
+  assert.equal(page.peers[0].connections[0].sent.length, 0);
+});
+
+test('consulta local funciona sem biblioteca ou sessão e informa falha ao carregar conteúdo', async () => {
+  const missingLibrary = runPage('remote', `?session=${'ef'.repeat(16)}`, false);
+  await missingLibrary.resolveLocalSlides();
+  missingLibrary.getElement('btn-next').listeners.click();
+  assert.equal(missingLibrary.getElement('remote-current-slide').textContent, 'Consulta local · Slide 2 · Diversidade');
+
+  const invalidSession = runPage('remote', '?session=invalid');
+  await invalidSession.resolveLocalSlides();
+  invalidSession.getElement('btn-next').listeners.click();
+  assert.equal(invalidSession.getElement('remote-current-slide').textContent, 'Consulta local · Slide 2 · Diversidade');
+
+  const failedLoad = runPage('remote', '?session=invalid');
+  await failedLoad.resolveLocalSlides({ ok: false, status: 503 });
+  assert.match(failedLoad.getElement('remote-slide-text-empty').textContent, /Notas locais indisponíveis/);
+  assert.equal(failedLoad.getElement('btn-next').disabled, true);
+  assert.match(failedLoad.errors[0].message, /503/);
+});
+
+test('carregamento local tardio não substitui o slide sincronizado', async () => {
+  const page = runPage('remote', `?session=${'ab'.repeat(16)}`);
+  page.peers[0].emit('open');
+  const connection = page.peers[0].connections[0];
+  connection.emit('open');
+  connection.emit('data', { action: 'slide-state', h: 2, title: 'Ao vivo', slideText: ['Texto atual'], notes: ['Nota atual'] });
+  await page.resolveLocalSlides();
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide 3 · Ao vivo');
+  connection.emit('close');
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Consulta local · Slide 3 · Sem notas');
+});
+
+test('falha no conteúdo local não impede sincronização pela conexão', async () => {
+  const page = runPage('remote', `?session=${'ab'.repeat(16)}`);
+  await page.resolveLocalSlides({ ok: false, status: 503 });
+  page.peers[0].emit('open');
+  const connection = page.peers[0].connections[0];
+  connection.emit('open');
+  connection.emit('data', { action: 'slide-state', h: 1, title: 'Ao vivo', slideText: ['Texto atual'], notes: ['Nota atual'] });
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide 2 · Ao vivo');
+  connection.emit('close');
+  assert.equal(page.getElement('remote-current-slide').textContent, 'Slide atual indisponível');
+  assert.match(page.getElement('remote-notes-empty').textContent, /Notas locais indisponíveis/);
 });
 
 test('controle aceita apresentação antiga sem texto e ignora blocos inválidos', () => {
