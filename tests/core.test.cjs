@@ -144,7 +144,7 @@ test('apresentação cria sessão e QR para o mesmo controle sem configuração'
   const session = new URL(page.location.href).searchParams.get('session');
   assert.equal(session, '0a'.repeat(16));
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('session'), session);
-  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261117-offline-notes');
+  assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('v'), '20261117-thanks-slide');
   assert.equal(new URL(page.getElement('remote-link').href).searchParams.get('transport'), 'auto');
   assert.equal(page.getElement('remote-qr').children.length, 1);
   assert.equal(page.peers[0].id, `bc-${session}`);
@@ -270,8 +270,8 @@ test('controle mostra o estado sincronizado e volta à consulta local após desc
 });
 
 test('sem pareamento, controle navega localmente inclusive por número sem mover a apresentação', async () => {
-  const page = runPage('remote', `?session=${'de'.repeat(16)}&v=20261117-offline-notes`);
-  assert.equal(await page.resolveLocalSlides(), 'https://example.test/index.html?v=20261117-offline-notes');
+  const page = runPage('remote', `?session=${'de'.repeat(16)}&v=20261117-thanks-slide`);
+  assert.equal(await page.resolveLocalSlides(), 'https://example.test/index.html?v=20261117-thanks-slide');
   assert.equal(page.getElement('btn-prev').disabled, true);
   assert.equal(page.getElement('btn-next').disabled, false);
   page.peers[0].emit('open');

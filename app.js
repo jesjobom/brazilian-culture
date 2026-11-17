@@ -50,7 +50,7 @@ function remoteUrlFor(sessionId, mode) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
   url.searchParams.set('transport', mode);
-  url.searchParams.set('v', '20261117-offline-notes');
+  url.searchParams.set('v', '20261117-thanks-slide');
   url.hash = '';
   return url.toString();
 }

@@ -715,6 +715,14 @@ body {
   line-height: 1.1;
 }
 
+.reveal .thanks-signature {
+  margin: 20px 0 0;
+  color: #183b31;
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
 .thanks-art {
   position: absolute;
   top: 50%;
