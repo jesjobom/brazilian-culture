@@ -20,7 +20,9 @@ O link da sessão funciona como chave de acesso ao controle; compartilhe-o apena
 
 ### Notas do slide no controle
 
-O controle mostra o número, título e notas do slide que está **realmente visível** na apresentação. O apresentador envia esse estado ao conectar, em cada troca de slide (inclusive por teclado) e após reconectar; os comandos próximo/anterior/ir para slide continuam iguais. Se a conexão cair, o controle deixa de exibir as notas antigas como atuais.
+O controle mostra o número, título, **texto visível** e notas do slide que está realmente visível na apresentação. O apresentador envia esse estado ao conectar, em cada troca de slide (inclusive por teclado) e após reconectar. O texto é extraído dos títulos, parágrafos, itens de lista e legendas do HTML do slide, em ordem; imagens e notas ocultas não entram nessa seção. Se a conexão cair, o controle deixa de exibir textos e notas antigos como atuais.
+
+No celular, texto e notas ficam numa área de leitura rolável; os botões anterior/próximo permanecem visíveis no rodapé. A seleção numérica de slide e os detalhes da conexão ficam recolhidos por padrão para economizar espaço. Os três comandos de navegação continuam disponíveis.
 
 As notas são bullets curtos e estáticos em francês, guardados dentro de cada `<section>` de `index.html` como `<aside class="remote-notes" hidden><ul><li>...</li></ul></aside>`. Para editar, altere os itens da lista do slide correspondente; para não mostrar notas, deixe a lista vazia. Elas fazem parte do HTML público, portanto não coloque informações privadas ali.
 

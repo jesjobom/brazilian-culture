@@ -4,35 +4,53 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Controle remoto — Cultura Brasileira</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20261117-compact-remote" />
   </head>
   <body class="remote-page">
     <main class="remote-layout">
       <div class="remote-panel">
-        <p class="eyebrow">Controle remoto</p>
-        <h1>Cultura Brasileira</h1>
-        <p>Sessão: <code id="remote-session-id">...</code></p>
-        <p>Conexão: <span id="remote-mode">...</span></p>
-        <div class="remote-actions">
-          <button id="btn-next" class="remote-button primary remote-button-next" disabled>Próximo slide</button>
-          <button id="btn-prev" class="remote-button secondary" disabled>Slide anterior</button>
-        </div>
-        <div class="goto-panel">
-          <label for="goto-slide">Número do slide</label>
-          <input id="goto-slide" type="number" min="1" placeholder="1" inputmode="numeric" />
-          <button id="btn-goto" class="remote-button tertiary" disabled>Ir para o slide</button>
-        </div>
-        <section class="remote-notes-panel" aria-labelledby="remote-notes-title">
-          <h2 id="remote-notes-title">Notas do slide atual</h2>
+        <header class="remote-header">
+          <h1>Cultura Brasileira</h1>
+          <p id="remote-feedback" class="remote-feedback" role="status">Inicializando...</p>
+        </header>
+        <div class="remote-reading">
           <p id="remote-current-slide" class="remote-current-slide" aria-live="polite">Aguardando apresentação...</p>
-          <ul id="remote-notes-list" lang="fr" hidden></ul>
-          <p id="remote-notes-empty" class="remote-notes-empty">As notas aparecerão quando o controle conectar.</p>
-        </section>
-        <p id="remote-feedback" class="remote-feedback" role="status">Inicializando...</p>
+          <section class="remote-slide-text-panel" aria-labelledby="remote-slide-text-title">
+            <h2 id="remote-slide-text-title">Texto do slide</h2>
+            <div id="remote-slide-text-list" lang="fr"></div>
+            <p id="remote-slide-text-empty" class="remote-notes-empty">O texto aparecerá quando o controle conectar.</p>
+          </section>
+          <section class="remote-notes-panel" aria-labelledby="remote-notes-title">
+            <h2 id="remote-notes-title">Notas</h2>
+            <ul id="remote-notes-list" lang="fr" hidden></ul>
+            <p id="remote-notes-empty" class="remote-notes-empty">As notas aparecerão quando o controle conectar.</p>
+          </section>
+        </div>
+        <footer class="remote-footer">
+          <div class="remote-actions">
+            <button id="btn-prev" class="remote-button secondary" disabled>Slide anterior</button>
+            <button id="btn-next" class="remote-button primary remote-button-next" disabled>Próximo slide</button>
+          </div>
+          <div class="remote-secondary-actions">
+            <details class="goto-panel">
+              <summary>Ir para slide</summary>
+              <div class="goto-controls">
+                <label class="visually-hidden" for="goto-slide">Número do slide</label>
+                <input id="goto-slide" type="number" min="1" placeholder="Número" inputmode="numeric" />
+                <button id="btn-goto" class="remote-button tertiary" disabled>Ir</button>
+              </div>
+            </details>
+            <details class="remote-connection-details">
+              <summary>Conexão</summary>
+              <p>Sessão: <code id="remote-session-id">...</code></p>
+              <p>Modo: <span id="remote-mode">...</span></p>
+            </details>
+          </div>
+        </footer>
       </div>
     </main>
 
     <script src="vendor/peerjs.min.js"></script>
-    <script src="app.js?v=20261102-slide-notes"></script>
+    <script src="app.js?v=20261117-compact-remote"></script>
   </body>
 </html>

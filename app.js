@@ -50,7 +50,7 @@ function remoteUrlFor(sessionId, mode) {
   const url = new URL('remote.html', window.location.href);
   url.searchParams.set('session', sessionId);
   url.searchParams.set('transport', mode);
-  url.searchParams.set('v', '20261102-slide-notes');
+  url.searchParams.set('v', '20261117-compact-remote');
   url.hash = '';
   return url.toString();
 }
@@ -106,8 +106,12 @@ function currentSlideState(deck) {
 
   const heading = slide.querySelector('h1, h2');
   const title = (heading?.innerText ?? heading?.textContent ?? '').trim().replace(/\s+/g, ' ') || `Slide ${h + 1}`;
+  const slideText = Array.from(slide.querySelectorAll('h1, h2, p, li, figcaption'))
+    .filter((element) => !element.closest('.remote-notes'))
+    .map((element) => (element.innerText ?? element.textContent ?? '').trim().replace(/\s+/g, ' '))
+    .filter(Boolean);
   const notes = Array.from(slide.querySelectorAll('.remote-notes li'), (item) => item.textContent.trim()).filter(Boolean);
-  return { action: 'slide-state', h, title, notes };
+  return { action: 'slide-state', h, title, slideText, notes };
 }
 
 function sendSlideState(deck, connection) {
@@ -230,11 +234,18 @@ function initializeRemote() {
   const mode = transportMode();
   const feedback = document.getElementById('remote-feedback');
   const currentSlide = document.getElementById('remote-current-slide');
+  const reading = document.querySelector('.remote-reading');
+  const slideTextList = document.getElementById('remote-slide-text-list');
+  const slideTextEmpty = document.getElementById('remote-slide-text-empty');
   const notesList = document.getElementById('remote-notes-list');
   const notesEmpty = document.getElementById('remote-notes-empty');
 
   function clearSlideState(message) {
     currentSlide.textContent = 'Slide atual indisponível';
+    reading.scrollTop = 0;
+    slideTextList.replaceChildren();
+    slideTextEmpty.textContent = message;
+    slideTextEmpty.hidden = false;
     notesList.replaceChildren();
     notesList.hidden = true;
     notesEmpty.textContent = message;
@@ -243,10 +254,22 @@ function initializeRemote() {
 
   function renderSlideState(data) {
     if (!Number.isSafeInteger(data.h) || data.h < 0 || typeof data.title !== 'string' ||
+        (data.slideText !== undefined && (!Array.isArray(data.slideText) || data.slideText.length > 40 ||
+          data.slideText.some((text) => typeof text !== 'string' || text.length > 1000))) ||
         !Array.isArray(data.notes) || data.notes.length > 20 ||
         data.notes.some((note) => typeof note !== 'string' || note.length > 1000)) return;
 
     currentSlide.textContent = `Slide ${data.h + 1} · ${data.title}`;
+    const textBlocks = (data.slideText ?? []).map((text) => {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = text;
+      return paragraph;
+    });
+    slideTextList.replaceChildren(...textBlocks);
+    slideTextEmpty.textContent = data.slideText === undefined
+      ? 'Texto indisponível. Atualize a apresentação.'
+      : 'Sem texto neste slide.';
+    slideTextEmpty.hidden = textBlocks.length > 0;
     const items = data.notes.map((note) => {
       const item = document.createElement('li');
       item.textContent = note;
@@ -256,6 +279,7 @@ function initializeRemote() {
     notesList.hidden = items.length === 0;
     notesEmpty.textContent = 'Sem notas para este slide.';
     notesEmpty.hidden = items.length > 0;
+    reading.scrollTop = 0;
   }
 
   if (!sessionId || !sessionPattern.test(sessionId)) {
